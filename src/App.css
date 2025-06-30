@@ -1,0 +1,12 @@
+/* Minimal custom CSS for SatoriPOS App component. Avoids conflicts with Tailwind CSS */
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #00A6A6);
+}
+
+/* Add additional minimal styles below if needed, but prefer Tailwind utility classes */

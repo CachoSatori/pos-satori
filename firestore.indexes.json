@@ -1,0 +1,47 @@
+{
+       "indexes": [
+         {
+           "collectionGroup": "products",
+           "queryScope": "COLLECTION",
+           "fields": [
+             {
+               "fieldPath": "name",
+               "order": "ASCENDING"
+             },
+             {
+               "fieldPath": "price",
+               "order": "ASCENDING"
+             }
+           ]
+         },
+         {
+           "collectionGroup": "tables",
+           "queryScope": "COLLECTION",
+           "fields": [
+             {
+               "fieldPath": "number",
+               "order": "ASCENDING"
+             },
+             {
+               "fieldPath": "status",
+               "order": "ASCENDING"
+             }
+           ]
+         },
+         {
+           "collectionGroup": "orders",
+           "queryScope": "COLLECTION",
+           "fields": [
+             {
+               "fieldPath": "tableId",
+               "order": "ASCENDING"
+             },
+             {
+               "fieldPath": "createdAt",
+               "order": "DESCENDING"
+             }
+           ]
+         }
+       ],
+       "fieldOverrides": []
+     }
