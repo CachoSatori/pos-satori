@@ -1,52 +1,68 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-     import { collection, onSnapshot, enablePersistence } from 'firebase/firestore';
-     import { toast } from 'react-toastify';
-     import { db } from '../services/firebase';
+import { collection, onSnapshot, enablePersistence } from 'firebase/firestore';
+import { toast } from 'react-toastify';
+import { db } from '../services/firebase';
 
-     interface Order {
-       id: string;
-       tableId: string;
-       products: { productId: string; quantity: number }[];
-       status: 'pending' | 'completed' | 'cancelled';
-       createdAt: string;
-     }
+export interface OrderItem {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
 
-     interface OrdersContextType {
-       orders: Order[];
-       loading: boolean;
-     }
+export interface Order {
+  id: string;
+  tableId: string;
+  status: string;
+  items: OrderItem[];
+  createdAt?: any;
+}
 
-     const OrdersContext = createContext<OrdersContextType>({ orders: [], loading: false });
+interface OrdersContextType {
+  orders: Order[];
+  loading: boolean;
+}
 
-     export const OrdersProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-       const [orders, setOrders] = useState<Order[]>([]);
-       const [loading, setLoading] = useState(true);
+const OrdersContext = createContext<OrdersContextType>({ orders: [], loading: false });
 
-       useEffect(() => {
-         enablePersistence(db).catch((error) => {
-           toast.error('Error al habilitar persistencia offline');
-           console.error(error);
-         });
+export const OrdersProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
-         const unsubscribe = onSnapshot(collection(db, 'orders'), (snapshot) => {
-           try {
-             const ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-             setOrders(ordersData);
-             setLoading(false);
-           } catch (error) {
-             toast.error('Error al cargar órdenes');
-             console.error(error);
-             setLoading(false);
-           }
-         });
-         return () => unsubscribe();
-       }, []);
+  useEffect(() => {
+    enablePersistence(db).catch((error) => {
+      toast.error('Error al habilitar persistencia offline');
+      console.error(error);
+    });
 
-       return (
-         <OrdersContext.Provider value={{ orders, loading }}>
-           {children}
-         </OrdersContext.Provider>
-       );
-     };
+    const unsubscribe = onSnapshot(collection(db, 'orders'), (snapshot) => {
+      try {
+        const ordersData = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            tableId: data.tableId || '',
+            status: data.status || 'pending',
+            items: Array.isArray(data.items) ? data.items : [],
+            createdAt: data.createdAt,
+          } as Order;
+        });
+        setOrders(ordersData);
+        setLoading(false);
+      } catch (error) {
+        toast.error('Error al cargar órdenes');
+        console.error(error);
+        setLoading(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
-     export const useOrders = () => useContext(OrdersContext);
+  return (
+    <OrdersContext.Provider value={{ orders, loading }}>
+      {children}
+    </OrdersContext.Provider>
+  );
+};
+
+export const useOrders = () => useContext(OrdersContext);
