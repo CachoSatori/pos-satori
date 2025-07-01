@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
-import { db, logError } from '../../services/firebase';
+import { db } from '../../services/firebase';
 import { useMesas } from '../../contexts/MesasContext';
 import { useAuth } from '../../contexts/AuthContext';
 import ProtectedRoute from '../auth/ProtectedRoute';
-import { Table } from '../../types';
 
 interface TableForm {
   number: number;
@@ -20,7 +19,7 @@ const AdminMesas: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleAddOrUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddOrUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.number) {
       toast.error('El número de mesa es requerido');
@@ -37,14 +36,14 @@ const AdminMesas: React.FC = () => {
       }
       setForm({ number: 0, status: 'available' });
       setEditingId(null);
-    } catch (error: unknown) {
+    } catch (error) {
       toast.error('Error al guardar mesa');
-      logError(error as Error);
+      console.error(error);
     }
   };
 
-  const handleEdit = (table: Table) => {
-    setForm({ number: Number(table.number), status: table.status === 'occupied' ? 'occupied' : 'available' });
+  const handleEdit = (table: { id: string; number: number; status: 'available' | 'occupied' }) => {
+    setForm({ number: table.number, status: table.status });
     setEditingId(table.id);
   };
 
@@ -53,9 +52,9 @@ const AdminMesas: React.FC = () => {
     try {
       await deleteDoc(doc(db, 'tables', id));
       toast.success('Mesa eliminada');
-    } catch (error: unknown) {
+    } catch (error) {
       toast.error('Error al eliminar mesa');
-      logError(error as Error);
+      console.error(error);
     }
   };
 

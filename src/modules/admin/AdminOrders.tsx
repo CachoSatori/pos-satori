@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { db, logError } from '../../services/firebase';
 import { useOrders } from '../../contexts/OrdersContext';
 import { useProductos } from '../../contexts/ProductosContext';
-import { useMesas } from '../../contexts/MesasContext';
+import { useMesas } from '../../contexts/MesasContext.tsx';
 import ProtectedRoute from '../auth/ProtectedRoute';
 import { Order, OrderItem } from '../../types';
 

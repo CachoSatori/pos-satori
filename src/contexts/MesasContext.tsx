@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { collection, onSnapshot, enableIndexedDbPersistence, FirestoreError } from 'firebase/firestore';
+import { collection, onSnapshot, FirestoreError } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db, logError } from '../services/firebase';
 import { Table } from '../types';
@@ -10,15 +10,6 @@ interface MesasContextType {
 }
 
 const MesasContext = createContext<MesasContextType>({ tables: [], loading: false });
-
-// Enable offline persistence only once, outside the component
-enableIndexedDbPersistence(db).catch((error: FirestoreError) => {
-  if (error.code !== 'failed-precondition' && error.code !== 'unimplemented') {
-    toast.error('Error al habilitar persistencia offline');
-    logError(error);
-  }
-  // Ignore known errors for multiple tabs or unsupported browsers
-});
 
 export const MesasProvider = ({ children }: { children: ReactNode }) => {
   const [tables, setTables] = useState<Table[]>([]);

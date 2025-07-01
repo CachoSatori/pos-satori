@@ -1,9 +1,14 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics, logEvent } from 'firebase/analytics';
-import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: "AIzasyDK7jSR3jJU6yXew4XupRA6NIOaDi_rOPI",
@@ -14,12 +19,17 @@ const firebaseConfig = {
   appId: "1:928288148777:web:fe0dbe000ea5a777a97b38",
 };
 
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
+
+// Modern Firestore persistence (recommended for SDK v11+)
+initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+});
 export const db = getFirestore(app);
+
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
 export const analytics = getAnalytics(app);
-
 export const messaging = getMessaging(app);
 
 // Request FCM token
