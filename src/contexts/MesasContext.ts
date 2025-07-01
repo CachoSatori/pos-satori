@@ -2,14 +2,14 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { collection, onSnapshot, enableIndexedDbPersistence, FirestoreError } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db, logError } from '../services/firebase';
-import { Order } from '../types';
+import { Table } from '../types';
 
-interface OrdersContextType {
-  orders: Order[];
+interface MesasContextType {
+  tables: Table[];
   loading: boolean;
 }
 
-const OrdersContext = createContext<OrdersContextType>({ orders: [], loading: false });
+const MesasContext = createContext<MesasContextType>({ tables: [], loading: false });
 
 // Enable offline persistence only once, outside the component
 enableIndexedDbPersistence(db).catch((error: FirestoreError) => {
@@ -20,43 +20,33 @@ enableIndexedDbPersistence(db).catch((error: FirestoreError) => {
   // Ignore known errors for multiple tabs or unsupported browsers
 });
 
-export const OrdersProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [orders, setOrders] = useState<Order[]>([]);
+export const MesasProvider = ({ children }: { children: ReactNode }) => {
+  const [tables, setTables] = useState<Table[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, 'orders'),
+      collection(db, 'tables'),
       (snapshot) => {
         try {
-          const ordersData: Order[] = snapshot.docs.map(doc => {
+          const tablesData: Table[] = snapshot.docs.map(doc => {
             const data = doc.data();
             return {
               id: doc.id,
-              tableId: data.tableId || '',
-              items: Array.isArray(data.items)
-                ? data.items
-                : Array.isArray(data.products)
-                  ? data.products
-                  : [],
-              status: data.status || 'pending',
-              createdAt: typeof data.createdAt === 'string'
-                ? data.createdAt
-                : (data.createdAt && typeof data.createdAt.toDate === 'function')
-                  ? data.createdAt.toDate().toISOString()
-                  : new Date().toISOString(),
+              number: data.number ?? '',
+              status: data.status ?? 'available',
             };
           });
-          setOrders(ordersData);
+          setTables(tablesData);
           setLoading(false);
         } catch (error: unknown) {
-          toast.error('Error al cargar órdenes');
+          toast.error('Error al cargar mesas');
           logError(error as Error);
           setLoading(false);
         }
       },
       (error: FirestoreError) => {
-        toast.error('Error en el listener de órdenes');
+        toast.error('Error en el listener de mesas');
         logError(error);
         setLoading(false);
       }
@@ -68,10 +58,10 @@ export const OrdersProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, []);
 
   return (
-    <OrdersContext.Provider value={{ orders, loading }}>
+    <MesasContext.Provider value={{ tables, loading }}>
       {children}
-    </OrdersContext.Provider>
+    </MesasContext.Provider>
   );
 };
 
-export const useOrders = () => useContext(OrdersContext);
+export const useMesas = () => useContext(MesasContext);

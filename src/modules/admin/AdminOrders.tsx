@@ -2,20 +2,16 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, collection, deleteDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { toast } from 'react-toastify';
-import { db } from '../../services/firebase';
+import { db, logError } from '../../services/firebase';
 import { useOrders } from '../../contexts/OrdersContext';
 import { useProductos } from '../../contexts/ProductosContext';
 import { useMesas } from '../../contexts/MesasContext';
 import ProtectedRoute from '../auth/ProtectedRoute';
+import { Order, OrderItem } from '../../types';
 
 interface OrderForm {
   tableId: string;
-  items: Array<{
-    productId: string;
-    name: string;
-    price: number;
-    quantity: number;
-  }>;
+  items: OrderItem[];
   status: string;
 }
 
@@ -46,7 +42,7 @@ const AdminOrders: React.FC = () => {
         const mesa = tables.find(t => t.id === order.tableId);
         const mesaMatch = mesa && `Mesa #${mesa.number}`.toLowerCase().includes(search.toLowerCase());
         const productMatch = order.items.some(item =>
-          item.name.toLowerCase().includes(search.toLowerCase())
+          (item.name ?? 'Producto').toLowerCase().includes(search.toLowerCase())
         );
         return mesaMatch || productMatch;
       });
@@ -87,7 +83,7 @@ const AdminOrders: React.FC = () => {
     });
   };
 
-  const handleAddOrUpdate = async (e: React.FormEvent) => {
+  const handleAddOrUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!form.tableId || form.items.length === 0) {
       toast.error('Selecciona una mesa y al menos un producto');
@@ -107,13 +103,13 @@ const AdminOrders: React.FC = () => {
       }
       setForm({ tableId: '', items: [], status: 'pending' });
       setEditingId(null);
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error('Error al guardar orden');
-      console.error(error);
+      logError(error as Error);
     }
   };
 
-  const handleEdit = (order: any) => {
+  const handleEdit = (order: Order) => {
     setForm({
       tableId: order.tableId,
       items: order.items,
@@ -128,9 +124,9 @@ const AdminOrders: React.FC = () => {
     try {
       await deleteDoc(doc(db, 'orders', id));
       toast.success('Orden eliminada');
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error('Error al eliminar orden');
-      console.error(error);
+      logError(error as Error);
     }
   };
 
@@ -201,8 +197,8 @@ const AdminOrders: React.FC = () => {
             <ul className="mb-4">
               {form.items.map((item, idx) => (
                 <li key={idx} className="flex items-center gap-4 mb-2">
-                  <span className="flex-1">{item.name} (x{item.quantity})</span>
-                  <span className="font-semibold">${item.price * item.quantity}</span>
+                  <span className="flex-1">{item.name ?? 'Producto'} (x{item.quantity})</span>
+                  <span className="font-semibold">${typeof item.price === 'number' ? (item.price * item.quantity).toFixed(2) : '0.00'}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(idx)}
@@ -215,7 +211,7 @@ const AdminOrders: React.FC = () => {
             </ul>
             <div className="font-bold text-lg">
               Total: $
-              {form.items.reduce((sum, item) => sum + item.price * item.quantity, 0)}
+              {form.items.reduce((sum, item) => sum + (typeof item.price === 'number' ? item.price * item.quantity : 0), 0).toFixed(2)}
             </div>
           </div>
           <select
@@ -279,14 +275,14 @@ const AdminOrders: React.FC = () => {
 
         {/* Orders grid with pagination */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {paginatedOrders.map(order => (
+          {paginatedOrders.map((order: Order) => (
             <div
               key={order.id}
               className="bg-secondary p-8 rounded-xl shadow-lg flex flex-col justify-between hover:shadow-2xl transition"
             >
               <div>
                 <h2 className="text-2xl font-bold text-accent mb-2">
-                  Mesa #{tables.find(t => t.id === order.tableId)?.number || 'N/A'}
+                  Mesa #{tables.find((t: any) => t.id === order.tableId)?.number || 'N/A'}
                 </h2>
                 <p className="mb-2 text-lg">
                   Estado:{' '}
@@ -303,21 +299,30 @@ const AdminOrders: React.FC = () => {
                   </span>
                 </p>
                 <ul className="mb-2">
-                  {order.items.map((item: any, idx: number) => (
-                    <li key={idx} className="flex justify-between">
-                      <span>
-                        {item.name} (x{item.quantity})
-                      </span>
-                      <span>${item.price * item.quantity}</span>
-                    </li>
-                  ))}
+                  {Array.isArray(order.items) && order.items.length > 0 ? (
+                    order.items.map((item: OrderItem, idx: number) => (
+                      <li key={idx} className="flex justify-between">
+                        <span>
+                          {item.name ?? 'Producto'} (x{item.quantity})
+                        </span>
+                        <span>
+                          ${typeof item.price === 'number' ? (item.price * item.quantity).toFixed(2) : '0.00'}
+                        </span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-gray-400 italic">Sin productos</li>
+                  )}
                 </ul>
                 <div className="font-bold text-lg">
                   Total: $
-                  {order.items.reduce(
-                    (sum: number, item: any) => sum + item.price * item.quantity,
-                    0
-                  )}
+                  {Array.isArray(order.items) && order.items.length > 0
+                    ? order.items.reduce(
+                        (sum: number, item: OrderItem) =>
+                          sum + (typeof item.price === 'number' ? item.price * item.quantity : 0),
+                        0
+                      ).toFixed(2)
+                    : '0.00'}
                 </div>
               </div>
               <div className="flex gap-2 mt-4">

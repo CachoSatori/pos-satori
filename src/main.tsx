@@ -6,6 +6,7 @@ import Dashboard from './modules/dashboard/Dashboard';
 import AdminProductos from './modules/admin/AdminProductos';
 import AdminMesas from './modules/admin/AdminMesas';
 import AdminOrders from './modules/admin/AdminOrders';
+import Notifications from './modules/notifications/Notifications';
 import Login from './modules/auth/Login';
 import ProtectedRoute from './modules/auth/ProtectedRoute';
 import NavBar from './components/NavBar';
@@ -15,7 +16,7 @@ import { MesasProvider } from './contexts/MesasContext';
 import { OrdersProvider } from './contexts/OrdersContext';
 import './index.css';
 
-const root = createRoot(document.getElementById('root')!);
+const root = createRoot(document.getElementById('root') as HTMLElement);
 root.render(
   <StrictMode>
     <AuthProvider>
@@ -55,6 +56,14 @@ root.render(
                   element={
                     <ProtectedRoute>
                       <AdminOrders />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/notifications"
+                  element={
+                    <ProtectedRoute>
+                      <Notifications />
                     </ProtectedRoute>
                   }
                 />

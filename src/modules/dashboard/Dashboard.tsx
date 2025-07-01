@@ -14,6 +14,7 @@ import {
   BarElement,
   Title,
 } from 'chart.js';
+import { Order, OrderItem } from '../../types';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -28,7 +29,7 @@ const Dashboard: React.FC = () => {
     (sum, order) =>
       sum +
       order.items.reduce(
-        (orderSum: number, item: any) => orderSum + item.price * item.quantity,
+        (orderSum: number, item: OrderItem) => orderSum + (item.price ?? 0) * item.quantity,
         0
       ),
     0
@@ -70,16 +71,15 @@ const Dashboard: React.FC = () => {
     const dayStr = day.toISOString().slice(0, 10);
     const dayOrders = completedOrders.filter(order => {
       if (!order.createdAt) return false;
-      const orderDate = order.createdAt.toDate
-        ? order.createdAt.toDate()
-        : new Date(order.createdAt);
+      // createdAt is always a string (ISO format)
+      const orderDate = new Date(order.createdAt);
       return orderDate.toISOString().slice(0, 10) === dayStr;
     });
     return dayOrders.reduce(
       (sum, order) =>
         sum +
         order.items.reduce(
-          (orderSum: number, item: any) => orderSum + item.price * item.quantity,
+          (orderSum: number, item: OrderItem) => orderSum + (item.price ?? 0) * item.quantity,
           0
         ),
       0
