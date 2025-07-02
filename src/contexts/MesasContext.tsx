@@ -1,58 +1,39 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { collection, onSnapshot, FirestoreError } from 'firebase/firestore';
-import { toast } from 'react-toastify';
-import { db, logError } from '../services/firebase';
-import { Table } from '../types';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+// 1. Interfaz Mesa
+interface Mesa {
+  id: string;
+  numero: number;
+  estado: 'libre' | 'ocupada' | 'reservada';
+}
+
+// 2. Interfaz MesasContextType
 interface MesasContextType {
-  tables: Table[];
+  tables: Mesa[];
+  setTables: React.Dispatch<React.SetStateAction<Mesa[]>>;
   loading: boolean;
 }
 
-const MesasContext = createContext<MesasContextType>({ tables: [], loading: false });
+// 3. Crear el contexto
+const MesasContext = createContext<MesasContextType | undefined>(undefined);
 
-export const MesasProvider = ({ children }: { children: ReactNode }) => {
-  const [tables, setTables] = useState<Table[]>([]);
+// 4. MesasProvider como componente React que retorna un ReactNode
+export const MesasProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [tables, setTables] = useState<Mesa[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, 'tables'),
-      (snapshot) => {
-        try {
-          const tablesData: Table[] = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              number: data.number ?? '',
-              status: data.status ?? 'available',
-            };
-          });
-          setTables(tablesData);
-          setLoading(false);
-        } catch (error: unknown) {
-          toast.error('Error al cargar mesas');
-          logError(error as Error);
-          setLoading(false);
-        }
-      },
-      (error: FirestoreError) => {
-        toast.error('Error en el listener de mesas');
-        logError(error);
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
   return (
-    <MesasContext.Provider value={{ tables, loading }}>
+    <MesasContext.Provider value={{ tables, setTables, loading }}>
       {children}
     </MesasContext.Provider>
   );
 };
 
-export const useMesas = () => useContext(MesasContext);
+// 5. Mantener useMesas sin cambios
+export const useMesas = () => {
+  const context = useContext(MesasContext);
+  if (!context) {
+    throw new Error('useMesas debe usarse dentro de MesasProvider');
+  }
+  return context;
+};

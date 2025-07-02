@@ -6,22 +6,24 @@ import { db } from '../../services/firebase';
 import { useMesas } from '../../contexts/MesasContext';
 import { useAuth } from '../../contexts/AuthContext';
 import ProtectedRoute from '../auth/ProtectedRoute';
+// 1. Importar la interfaz Mesa
+import { Mesa } from '../../types';
 
 interface TableForm {
-  number: number;
-  status: 'available' | 'occupied';
+  numero: number;
+  estado: 'libre' | 'ocupada' | 'reservada';
 }
 
 const AdminMesas: React.FC = () => {
   const { tables, loading } = useMesas();
   const { user } = useAuth();
-  const [form, setForm] = useState<TableForm>({ number: 0, status: 'available' });
+  const [form, setForm] = useState<TableForm>({ numero: 0, estado: 'libre' });
   const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleAddOrUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.number) {
+    if (!form.numero) {
       toast.error('El número de mesa es requerido');
       return;
     }
@@ -34,7 +36,7 @@ const AdminMesas: React.FC = () => {
         await addDoc(collection(db, 'tables'), { ...form });
         toast.success('Mesa agregada');
       }
-      setForm({ number: 0, status: 'available' });
+      setForm({ numero: 0, estado: 'libre' });
       setEditingId(null);
     } catch (error) {
       toast.error('Error al guardar mesa');
@@ -42,8 +44,8 @@ const AdminMesas: React.FC = () => {
     }
   };
 
-  const handleEdit = (table: { id: string; number: number; status: 'available' | 'occupied' }) => {
-    setForm({ number: table.number, status: table.status });
+  const handleEdit = (table: Mesa) => {
+    setForm({ numero: table.numero, estado: table.estado });
     setEditingId(table.id);
   };
 
@@ -78,21 +80,22 @@ const AdminMesas: React.FC = () => {
         >
           <input
             type="number"
-            name="number"
+            name="numero"
             placeholder="Número de mesa"
-            value={form.number === 0 ? '' : form.number}
-            onChange={(e) => setForm({ ...form, number: parseInt(e.target.value, 10) || 0 })}
+            value={form.numero === 0 ? '' : form.numero}
+            onChange={(e) => setForm({ ...form, numero: parseInt(e.target.value, 10) || 0 })}
             className="p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text placeholder:text-gray-400 text-lg"
             required
           />
           <select
-            name="status"
-            value={form.status}
-            onChange={(e) => setForm({ ...form, status: e.target.value as 'available' | 'occupied' })}
+            name="estado"
+            value={form.estado}
+            onChange={(e) => setForm({ ...form, estado: e.target.value as 'libre' | 'ocupada' | 'reservada' })}
             className="p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text text-lg"
           >
-            <option value="available">Disponible</option>
-            <option value="occupied">Ocupada</option>
+            <option value="libre">Disponible</option>
+            <option value="ocupada">Ocupada</option>
+            <option value="reservada">Reservada</option>
           </select>
           <div className="flex gap-4">
             <button
@@ -106,7 +109,7 @@ const AdminMesas: React.FC = () => {
                 type="button"
                 className="flex-1 bg-gray-400 text-text p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-80 focus:ring-2 focus:ring-gray-400 transition text-lg"
                 onClick={() => {
-                  setForm({ number: 0, status: 'available' });
+                  setForm({ numero: 0, estado: 'libre' });
                   setEditingId(null);
                 }}
               >
@@ -116,30 +119,47 @@ const AdminMesas: React.FC = () => {
           </div>
         </form>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {tables.map((table) => (
+          {/* 2. Usar Mesa como tipo explícito */}
+          {tables.map((table: Mesa) => (
             <div
               key={table.id}
               className="bg-secondary p-8 rounded-xl shadow-lg flex flex-col justify-between hover:shadow-2xl transition"
             >
               <div>
-                <h2 className="text-2xl font-bold text-accent mb-2">Mesa #{table.number}</h2>
+                <h2 className="text-2xl font-bold text-accent mb-2">Mesa #{table.numero}</h2>
                 <p className="mb-2 text-lg">
                   Estado:{' '}
-                  <span className={`font-semibold ${table.status === 'available' ? 'text-accent' : 'text-danger'}`}>
-                    {table.status === 'available' ? 'Disponible' : 'Ocupada'}
+                  <span className={`font-semibold ${table.estado === 'libre' ? 'text-accent' : 'text-danger'}`}>
+                    {table.estado === 'libre' ? 'Disponible' : table.estado.charAt(0).toUpperCase() + table.estado.slice(1)}
                   </span>
                 </p>
               </div>
               <div className="flex gap-2 mt-4">
                 <button
-                  onClick={() => handleEdit(table)}
-                  className="flex-1 bg-accent text-text p-3 rounded-xl font-bold hover:bg-opacity-90 focus:ring-2 focus:ring-accent transition text-lg"
+                  onClick={() => handleEdit({ ...table, numero: Number(table.numero) })}
+                  style={{
+                    padding: '16px',
+                    fontSize: '18px',
+                    borderRadius: '8px',
+                    backgroundColor: table.estado === 'libre' ? '#00A6A6' : '#1C2526',
+                    color: '#FFFFFF',
+                    border: '1px solid #00A6A6'
+                  }}
+                  className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-accent transition text-lg"
                 >
                   Editar
                 </button>
                 <button
                   onClick={() => handleDelete(table.id)}
-                  className="flex-1 bg-danger text-text p-3 rounded-xl font-bold hover:bg-opacity-90 focus:ring-2 focus:ring-danger transition text-lg"
+                  style={{
+                    padding: '16px',
+                    fontSize: '18px',
+                    borderRadius: '8px',
+                    backgroundColor: table.estado === 'libre' ? '#00A6A6' : '#1C2526',
+                    color: '#FFFFFF',
+                    border: '1px solid #00A6A6'
+                  }}
+                  className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-danger transition text-lg"
                 >
                   Eliminar
                 </button>

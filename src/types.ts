@@ -1,8 +1,20 @@
+export interface Mesa {
+  id: string;
+  numero: number;
+  estado: 'libre' | 'ocupada' | 'reservada';
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export interface OrderItem {
   productId: string;
-  name?: string;
-  price?: number;
   quantity: number;
+  name: string;
+  price: number;
 }
 
 export interface Order {
@@ -11,16 +23,4 @@ export interface Order {
   items: OrderItem[];
   status: 'pending' | 'completed' | 'cancelled';
   createdAt: string;
-}
-
-export interface Table {
-  id: string;
-  number: number | string;
-  status: 'available' | 'occupied' | 'reserved';
-}
-
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
 }

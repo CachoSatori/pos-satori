@@ -1,5 +1,5 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import Dashboard from './modules/dashboard/Dashboard';
@@ -10,19 +10,18 @@ import Notifications from './modules/notifications/Notifications';
 import Login from './modules/auth/Login';
 import ProtectedRoute from './modules/auth/ProtectedRoute';
 import NavBar from './components/NavBar';
-import { AuthProvider } from './contexts/AuthContext';
-import { ProductosProvider } from './contexts/ProductosContext';
-import { MesasProvider } from './contexts/MesasContext.tsx'; // Explicit .tsx extension
-import { OrdersProvider } from './contexts/OrdersContext';
+import { ProductosProvider } from './contexts/ProductosContext.tsx';
+import { MesasProvider } from './contexts/MesasContext.tsx';
+import { OrdersProvider } from './contexts/OrdersContext.tsx';
+import { AuthProvider } from './contexts/AuthContext.tsx';
 import './index.css';
 
-const root = createRoot(document.getElementById('root') as HTMLElement);
-root.render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
     <AuthProvider>
-      <ProductosProvider>
-        <MesasProvider>
-          <OrdersProvider>
+      <MesasProvider>
+        <OrdersProvider>
+          <ProductosProvider>
             <BrowserRouter>
               <NavBar />
               <Routes>
@@ -70,9 +69,9 @@ root.render(
                 <Route path="/login" element={<Login />} />
               </Routes>
             </BrowserRouter>
-          </OrdersProvider>
-        </MesasProvider>
-      </ProductosProvider>
+          </ProductosProvider>
+        </OrdersProvider>
+      </MesasProvider>
     </AuthProvider>
-  </StrictMode>
+  </React.StrictMode>
 );

@@ -1,64 +1,80 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '../services/firebase';
-import { toast } from 'react-toastify';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { auth, db } from '../firebase';
+import { onAuthStateChanged, User, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
+  role: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: false,
-  login: async () => {},
-  logout: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      console.log('Auth state changed:', { uid: currentUser?.uid, email: currentUser?.email });
+      setUser(currentUser);
+      if (currentUser) {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userRole = userDoc.data().role;
+          console.log('User role fetched:', userRole);
+          setRole(userRole);
+        } else {
+          console.log('No user document found for UID:', currentUser.uid);
+          setRole(null);
+        }
+      } else {
+        console.log('No user signed in');
+        setRole(null);
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error('Auth state error:', error);
       setLoading(false);
     });
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
   const login = async (email: string, password: string) => {
-    setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success('Inicio de sesión exitoso');
-    } catch (error: any) {
-      toast.error('Error al iniciar sesión');
-    } finally {
-      setLoading(false);
+      console.log('Login successful:', email);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
   };
 
   const logout = async () => {
-    setLoading(true);
     try {
       await signOut(auth);
-      toast.success('Sesión cerrada');
-    } catch (error: any) {
-      toast.error('Error al cerrar sesión');
-    } finally {
-      setLoading(false);
+      console.log('Logout successful');
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, role, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth debe usarse dentro de AuthProvider');
+  }
+  return context;
 };

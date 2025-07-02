@@ -14,7 +14,7 @@ import {
   BarElement,
   Title,
 } from 'chart.js';
-import { Order, OrderItem } from '../../types';
+import { Order, OrderItem, Mesa } from '../../types';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -23,10 +23,9 @@ const Dashboard: React.FC = () => {
   const { tables, loading: loadingTables } = useMesas();
   const { orders, loading: loadingOrders } = useOrders();
 
-  // Calculate revenue and completed orders
-  const completedOrders = orders.filter(order => order.status === 'completed');
+  const completedOrders = orders.filter((order: Order) => order.status === 'completed');
   const totalRevenue = completedOrders.reduce(
-    (sum, order) =>
+    (sum: number, order: Order) =>
       sum +
       order.items.reduce(
         (orderSum: number, item: OrderItem) => orderSum + (item.price ?? 0) * item.quantity,
@@ -35,9 +34,8 @@ const Dashboard: React.FC = () => {
     0
   );
 
-  // Chart: Order Status Distribution
   const statusCounts = orders.reduce(
-    (acc: Record<string, number>, order) => {
+    (acc: Record<string, number>, order: Order) => {
       acc[order.status] = (acc[order.status] || 0) + 1;
       return acc;
     },
@@ -60,7 +58,6 @@ const Dashboard: React.FC = () => {
     ],
   };
 
-  // Chart: Revenue by Day (last 7 days)
   const days = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
@@ -69,14 +66,13 @@ const Dashboard: React.FC = () => {
 
   const revenueByDay = days.map(day => {
     const dayStr = day.toISOString().slice(0, 10);
-    const dayOrders = completedOrders.filter(order => {
+    const dayOrders = completedOrders.filter((order: Order) => {
       if (!order.createdAt) return false;
-      // createdAt is always a string (ISO format)
       const orderDate = new Date(order.createdAt);
       return orderDate.toISOString().slice(0, 10) === dayStr;
     });
     return dayOrders.reduce(
-      (sum, order) =>
+      (sum: number, order: Order) =>
         sum +
         order.items.reduce(
           (orderSum: number, item: OrderItem) => orderSum + (item.price ?? 0) * item.quantity,
@@ -119,7 +115,20 @@ const Dashboard: React.FC = () => {
               <span className="text-lg font-semibold mb-4">Productos</span>
               <Link
                 to="/admin"
-                className="bg-accent text-text px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-accent/80 transition text-lg w-full text-center"
+                style={{
+                  padding: '16px',
+                  fontSize: '18px',
+                  borderRadius: '8px',
+                  backgroundColor: '#00A6A6',
+                  color: '#FFFFFF',
+                  border: '1px solid #00A6A6',
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 8px #1C2526',
+                  marginTop: '16px'
+                }}
               >
                 Ver Productos
               </Link>
@@ -129,7 +138,20 @@ const Dashboard: React.FC = () => {
               <span className="text-lg font-semibold mb-4">Mesas</span>
               <Link
                 to="/mesas"
-                className="bg-accent text-text px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-accent/80 transition text-lg w-full text-center"
+                style={{
+                  padding: '16px',
+                  fontSize: '18px',
+                  borderRadius: '8px',
+                  backgroundColor: '#00A6A6',
+                  color: '#FFFFFF',
+                  border: '1px solid #00A6A6',
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 8px #1C2526',
+                  marginTop: '16px'
+                }}
               >
                 Ver Mesas
               </Link>
@@ -142,7 +164,20 @@ const Dashboard: React.FC = () => {
               </span>
               <Link
                 to="/orders"
-                className="bg-accent text-text px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-accent/80 transition text-lg w-full text-center"
+                style={{
+                  padding: '16px',
+                  fontSize: '18px',
+                  borderRadius: '8px',
+                  backgroundColor: '#00A6A6',
+                  color: '#FFFFFF',
+                  border: '1px solid #00A6A6',
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 8px #1C2526',
+                  marginTop: '16px'
+                }}
               >
                 Ver Órdenes
               </Link>
@@ -155,23 +190,32 @@ const Dashboard: React.FC = () => {
                 ${totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
               </span>
               <div className="w-full mt-6">
-                <Bar data={revenueBarData} options={{
-                  plugins: { legend: { display: false } },
-                  responsive: true,
-                  scales: { y: { beginAtZero: true, ticks: { color: '#fff' } }, x: { ticks: { color: '#fff' } } }
-                }} />
+                <Bar
+                  data={revenueBarData}
+                  options={{
+                    plugins: { legend: { display: false } },
+                    responsive: true,
+                    scales: {
+                      y: { beginAtZero: true, ticks: { color: '#fff' } },
+                      x: { ticks: { color: '#fff' } }
+                    }
+                  }}
+                />
               </div>
             </div>
             <div className="flex-1 bg-primary rounded-xl shadow p-8 flex flex-col items-center">
               <span className="text-lg font-semibold mb-4">Órdenes por Estado</span>
               <div className="w-full max-w-xs">
-                <Pie data={statusPieData} options={{
-                  plugins: {
-                    legend: {
-                      labels: { color: '#fff', font: { size: 16 } }
+                <Pie
+                  data={statusPieData}
+                  options={{
+                    plugins: {
+                      legend: {
+                        labels: { color: '#fff', font: { size: 16 } }
+                      }
                     }
-                  }
-                }} />
+                  }}
+                />
               </div>
             </div>
           </div>

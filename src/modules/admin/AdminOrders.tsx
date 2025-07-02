@@ -5,9 +5,10 @@ import { toast } from 'react-toastify';
 import { db, logError } from '../../services/firebase';
 import { useOrders } from '../../contexts/OrdersContext';
 import { useProductos } from '../../contexts/ProductosContext';
-import { useMesas } from '../../contexts/MesasContext.tsx';
+import { useMesas } from '../../contexts/MesasContext';
 import ProtectedRoute from '../auth/ProtectedRoute';
-import { Order, OrderItem } from '../../types';
+// 1. Importar interfaces
+import { Mesa, Order, OrderItem } from '../../types';
 
 interface OrderForm {
   tableId: string;
@@ -38,17 +39,18 @@ const AdminOrders: React.FC = () => {
   const filteredOrders = useMemo(() => {
     let filtered = orders;
     if (search.trim()) {
-      filtered = filtered.filter(order => {
-        const mesa = tables.find(t => t.id === order.tableId);
-        const mesaMatch = mesa && `Mesa #${mesa.number}`.toLowerCase().includes(search.toLowerCase());
-        const productMatch = order.items.some(item =>
+      filtered = filtered.filter((order: Order) => { // 2. Order
+        const mesa = tables.find((t: Mesa) => t.id === order.tableId); // 3. Mesa
+        // 1 y 2: Mesa #${mesa.numero}
+        const mesaMatch = mesa && `Mesa #${mesa?.numero}`.toLowerCase().includes(search.toLowerCase());
+        const productMatch = order.items.some((item: OrderItem) => // 4. OrderItem
           (item.name ?? 'Producto').toLowerCase().includes(search.toLowerCase())
         );
         return mesaMatch || productMatch;
       });
     }
     if (statusFilter) {
-      filtered = filtered.filter(order => order.status === statusFilter);
+      filtered = filtered.filter((order: Order) => order.status === statusFilter); // 2. Order
     }
     return filtered;
   }, [orders, search, statusFilter, tables]);
@@ -156,9 +158,9 @@ const AdminOrders: React.FC = () => {
             required
           >
             <option value="">Selecciona una mesa</option>
-            {tables.map(table => (
+            {tables.map((table: Mesa) => ( // 5. Mesa
               <option key={table.id} value={table.id}>
-                Mesa #{table.number}
+                Mesa #{table.numero}
               </option>
             ))}
           </select>
@@ -282,7 +284,8 @@ const AdminOrders: React.FC = () => {
             >
               <div>
                 <h2 className="text-2xl font-bold text-accent mb-2">
-                  Mesa #{tables.find((t: any) => t.id === order.tableId)?.number || 'N/A'}
+                  {/* 2: tables.find((t: any) => t.id === order.tableId)?.numero */}
+                  Mesa #{tables.find((t: any) => t.id === order.tableId)?.numero || 'N/A'}
                 </h2>
                 <p className="mb-2 text-lg">
                   Estado:{' '}
@@ -328,13 +331,29 @@ const AdminOrders: React.FC = () => {
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => handleEdit(order)}
-                  className="flex-1 bg-accent text-text p-3 rounded-xl font-bold hover:bg-opacity-90 focus:ring-2 focus:ring-accent transition text-lg"
+                  style={{
+                    padding: '16px',
+                    fontSize: '18px',
+                    borderRadius: '8px',
+                    backgroundColor: '#00A6A6',
+                    color: '#fff',
+                    border: '1px solid #00A6A6'
+                  }}
+                  className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-accent transition text-lg"
                 >
                   Editar
                 </button>
                 <button
                   onClick={() => handleDelete(order.id)}
-                  className="flex-1 bg-danger text-text p-3 rounded-xl font-bold hover:bg-opacity-90 focus:ring-2 focus:ring-danger transition text-lg"
+                  style={{
+                    padding: '16px',
+                    fontSize: '18px',
+                    borderRadius: '8px',
+                    backgroundColor: '#00A6A6',
+                    color: '#fff',
+                    border: '1px solid #00A6A6'
+                  }}
+                  className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-danger transition text-lg"
                 >
                   Eliminar
                 </button>

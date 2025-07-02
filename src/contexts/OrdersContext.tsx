@@ -1,77 +1,29 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { collection, onSnapshot, enableIndexedDbPersistence, FirestoreError } from 'firebase/firestore';
-import { toast } from 'react-toastify';
-import { db, logError } from '../services/firebase';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Order } from '../types';
 
 interface OrdersContextType {
   orders: Order[];
+  setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
   loading: boolean;
 }
 
-const OrdersContext = createContext<OrdersContextType>({ orders: [], loading: false });
-
-// Enable offline persistence only once, outside the component
-enableIndexedDbPersistence(db).catch((error: FirestoreError) => {
-  if (error.code !== 'failed-precondition' && error.code !== 'unimplemented') {
-    toast.error('Error al habilitar persistencia offline');
-    logError(error);
-  }
-  // Ignore known errors for multiple tabs or unsupported browsers
-});
+const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
 
 export const OrdersProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, 'orders'),
-      (snapshot) => {
-        try {
-          const ordersData: Order[] = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              tableId: data.tableId || '',
-              items: Array.isArray(data.items)
-                ? data.items
-                : Array.isArray(data.products)
-                  ? data.products
-                  : [],
-              status: data.status || 'pending',
-              createdAt: typeof data.createdAt === 'string'
-                ? data.createdAt
-                : (data.createdAt && typeof data.createdAt.toDate === 'function')
-                  ? data.createdAt.toDate().toISOString()
-                  : new Date().toISOString(),
-            };
-          });
-          setOrders(ordersData);
-          setLoading(false);
-        } catch (error: unknown) {
-          toast.error('Error al cargar órdenes');
-          logError(error as Error);
-          setLoading(false);
-        }
-      },
-      (error: FirestoreError) => {
-        toast.error('Error en el listener de órdenes');
-        logError(error);
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
   return (
-    <OrdersContext.Provider value={{ orders, loading }}>
+    <OrdersContext.Provider value={{ orders, setOrders, loading }}>
       {children}
     </OrdersContext.Provider>
   );
 };
 
-export const useOrders = () => useContext(OrdersContext);
+export const useOrders = () => {
+  const context = useContext(OrdersContext);
+  if (!context) {
+    throw new Error('useOrders debe usarse dentro de OrdersProvider');
+  }
+  return context;
+};
