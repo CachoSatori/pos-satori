@@ -1,59 +1,62 @@
-import { initializeApp } from 'firebase/app';
-import {
-  getFirestore,
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
-} from 'firebase/firestore';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFunctions } from 'firebase/functions';
-import { getAnalytics, logEvent } from 'firebase/analytics';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { initializeFirestore } from 'firebase/firestore';
+import { getMessaging, isSupported } from 'firebase/messaging';
 
+// Configuración específica del proyecto pos-satori
 const firebaseConfig = {
-  apiKey: "AIzasyDK7jSR3jJU6yXew4XupRA6NIOaDi_rOPI",
+  apiKey: "AIzaSyBLchTepoC9GFPJ0w3E9GS9B9OFh5ZcZgs",
   authDomain: "pos-satori.firebaseapp.com",
   projectId: "pos-satori",
   storageBucket: "pos-satori.appspot.com",
   messagingSenderId: "928288148777",
-  appId: "1:928288148777:web:fe0dbe000ea5a777a97b38",
+  appId: "1:928288148777:web:fe0dbe000ea5a777a97b38"
 };
 
-export const app = initializeApp(firebaseConfig);
+// Evitar inicialización múltiple
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Modern Firestore persistence (recommended for SDK v11+)
-initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+const auth = getAuth(app);
+const db = initializeFirestore(app, {});
+const messagingPromise = isSupported().then((supported) => {
+  if (supported) {
+    return getMessaging(app);
+  }
+  return null;
 });
-export const db = getFirestore(app);
 
-export const auth = getAuth(app);
-export const functions = getFunctions(app);
-export const analytics = getAnalytics(app);
-export const messaging = getMessaging(app);
+export { auth, db, messagingPromise as messaging };
 
-// Request FCM token
-export const requestFCMToken = async (): Promise<string | null> => {
+// Solicitar token FCM con la public VAPID key del proyecto
+export async function requestFCMToken(): Promise<string | null> {
   try {
-    const token = await getToken(messaging, {
-      vapidKey: "BMTdml9TduHMm_v8pQalTdNMYCs8-ZyUE50czuRio6gNWlgXNqaLbIcn0j9sV7Iz1tl6J5jfOLgZl01HvSq-N3w"
-    });
-    return token;
+    const messaging = await messagingPromise;
+    if (!messaging) return null;
+    const vapidKey = 'BMTdml9TduHMm_v8pQalTdNMYCs8-ZyUE50czuRio6gNWlgXNqaLbIcn0j9sV7Iz1tl6J5jfOLgZl01HvSq-N3w';
+    return await (await import('firebase/messaging')).getToken(messaging, { vapidKey });
   } catch (error) {
-    logError(error as Error);
+    logError(error);
     return null;
   }
-};
+}
 
-// Listen for foreground FCM messages
-export const onForegroundMessage = (callback: (payload: any) => void) => {
-  return onMessage(messaging, callback);
-};
-
-// Log errors to Analytics
-export const logError = (error: Error) => {
-  logEvent(analytics, 'exception', {
-    description: error.message,
-    fatal: false,
+// Escuchar mensajes en primer plano
+export function onForegroundMessage(
+  callback: (payload: { notification?: { body?: string } }) => void
+): () => void {
+  let unsubscribe = () => {};
+  messagingPromise.then(messaging => {
+    if (messaging) {
+      import('firebase/messaging').then(({ onMessage }) => {
+        unsubscribe = onMessage(messaging, callback);
+      });
+    }
   });
-};
+  return () => unsubscribe();
+}
+
+// Logger simple de errores
+export function logError(error: unknown) {
+  // Puedes expandir esto para enviar errores a un servicio externo
+  console.error(error);
+}

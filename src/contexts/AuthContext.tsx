@@ -11,7 +11,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -20,48 +20,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log('Auth state changed:', { uid: currentUser?.uid, email: currentUser?.email });
       setUser(currentUser);
       if (currentUser) {
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
-          const userRole = userDoc.data().role;
-          console.log('User role fetched:', userRole);
-          setRole(userRole);
-        } else {
-          console.log('No user document found for UID:', currentUser.uid);
+        try {
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists()) {
+            setRole(userDoc.data().role ?? null);
+          } else {
+            setRole(null);
+          }
+        } catch (error) {
           setRole(null);
         }
       } else {
-        console.log('No user signed in');
         setRole(null);
       }
       setLoading(false);
-    }, (error) => {
-      console.error('Auth state error:', error);
-      setLoading(false);
-    });
+    }, () => setLoading(false));
     return unsubscribe;
   }, []);
 
   const login = async (email: string, password: string) => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log('Login successful:', email);
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
-    try {
-      await signOut(auth);
-      console.log('Logout successful');
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
-    }
+    await signOut(auth);
   };
 
   return (

@@ -24,3 +24,10 @@ export interface Order {
   status: 'pending' | 'completed' | 'cancelled';
   createdAt: string;
 }
+
+// Definición estricta: Table.number es de tipo number
+export interface Table {
+  id: string;
+  number: number;
+  status: 'available' | 'occupied';
+}

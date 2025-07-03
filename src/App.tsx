@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import logo from './assets/LOGO.jpg';
+import Login from './modules/auth/Login'; // Ajusta la ruta si es necesario
 
-function App() {
+function Home() {
   return (
     <div
       className="bg-primary text-text min-h-screen p-8 flex flex-col items-center justify-center touch-manipulation"
@@ -39,6 +40,18 @@ function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      {/* Agrega aquí tus otras rutas, por ejemplo: */}
+      {/* <Route path="/admin" element={<AdminProductos />} /> */}
+      {/* <Route path="/mesas" element={<AdminMesas />} /> */}
+    </Routes>
   );
 }
 

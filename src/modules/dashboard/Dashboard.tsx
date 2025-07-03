@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useProductos } from '../../contexts/ProductosContext';
 import { useMesas } from '../../contexts/MesasContext';
 import { useOrders } from '../../contexts/OrdersContext';
+import { useAuth } from '../../contexts/useAuth';
 import ProtectedRoute from '../auth/ProtectedRoute';
 import { Pie, Bar } from 'react-chartjs-2';
 import {
@@ -19,6 +20,7 @@ import { Order, OrderItem, Mesa } from '../../types';
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 const Dashboard: React.FC = () => {
+  useAuth(); // Asegura que el usuario esté autenticado y refresca el contexto
   const { products, loading: loadingProducts } = useProductos();
   const { tables, loading: loadingTables } = useMesas();
   const { orders, loading: loadingOrders } = useOrders();
@@ -98,20 +100,20 @@ const Dashboard: React.FC = () => {
 
   if (loadingProducts || loadingTables || loadingOrders) {
     return (
-      <div className="bg-primary text-text min-h-screen flex items-center justify-center">
+      <div className="bg-[#1C2526] text-[#FFFFFF] min-h-screen flex items-center justify-center">
         <span className="text-xl">Cargando resumen...</span>
       </div>
     );
   }
 
   return (
-    <ProtectedRoute>
-      <div className="bg-primary text-text min-h-screen flex items-center justify-center p-8">
-        <div className="bg-secondary rounded-xl shadow-lg p-8 flex flex-col gap-8 items-center w-full max-w-5xl">
-          <h1 className="text-4xl font-bold mb-4 text-center">Dashboard</h1>
+    <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+      <div className="bg-[#1C2526] text-[#FFFFFF] min-h-screen flex items-center justify-center p-8">
+        <div className="bg-[#16213e] rounded-xl shadow-lg p-8 flex flex-col gap-8 items-center w-full max-w-5xl">
+          <h1 className="text-4xl font-bold mb-4 text-center text-[#00A6A6]">Dashboard</h1>
           <div className="flex flex-col md:flex-row gap-8 w-full justify-center">
-            <div className="flex-1 bg-primary rounded-xl shadow p-8 flex flex-col items-center">
-              <span className="text-accent text-5xl font-bold mb-2">{products.length}</span>
+            <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
+              <span className="text-[#00A6A6] text-5xl font-bold mb-2">{products.length}</span>
               <span className="text-lg font-semibold mb-4">Productos</span>
               <Link
                 to="/admin"
@@ -133,8 +135,8 @@ const Dashboard: React.FC = () => {
                 Ver Productos
               </Link>
             </div>
-            <div className="flex-1 bg-primary rounded-xl shadow p-8 flex flex-col items-center">
-              <span className="text-accent text-5xl font-bold mb-2">{tables.length}</span>
+            <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
+              <span className="text-[#00A6A6] text-5xl font-bold mb-2">{tables.length}</span>
               <span className="text-lg font-semibold mb-4">Mesas</span>
               <Link
                 to="/mesas"
@@ -156,11 +158,11 @@ const Dashboard: React.FC = () => {
                 Ver Mesas
               </Link>
             </div>
-            <div className="flex-1 bg-primary rounded-xl shadow p-8 flex flex-col items-center">
-              <span className="text-accent text-5xl font-bold mb-2">{orders.length}</span>
+            <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
+              <span className="text-[#00A6A6] text-5xl font-bold mb-2">{orders.length}</span>
               <span className="text-lg font-semibold mb-1">Órdenes</span>
-              <span className="text-text text-lg mb-4">
-                Completadas: <span className="font-bold text-accent">{statusCounts.completed}</span>
+              <span className="text-[#FFFFFF] text-lg mb-4">
+                Completadas: <span className="font-bold text-[#00A6A6]">{statusCounts.completed}</span>
               </span>
               <Link
                 to="/orders"
@@ -184,9 +186,9 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="w-full flex flex-col md:flex-row gap-8 justify-center mt-8">
-            <div className="flex-1 bg-primary rounded-xl shadow p-8 flex flex-col items-center">
+            <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
               <span className="text-lg font-semibold mb-2">Ingresos Totales</span>
-              <span className="text-3xl font-bold text-accent mb-2">
+              <span className="text-3xl font-bold text-[#00A6A6] mb-2">
                 ${totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
               </span>
               <div className="w-full mt-6">
@@ -203,7 +205,7 @@ const Dashboard: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="flex-1 bg-primary rounded-xl shadow p-8 flex flex-col items-center">
+            <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
               <span className="text-lg font-semibold mb-4">Órdenes por Estado</span>
               <div className="w-full max-w-xs">
                 <Pie

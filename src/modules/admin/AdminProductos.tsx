@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
-import { db } from '../../services/firebase';
+import { db } from '../../firebase';
 import { useProductos } from '../../contexts/ProductosContext';
 
 interface ProductForm {

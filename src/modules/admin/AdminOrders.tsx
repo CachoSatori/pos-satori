@@ -2,12 +2,12 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, collection, deleteDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { toast } from 'react-toastify';
-import { db, logError } from '../../services/firebase';
+import { db, logError } from '../../firebase';
 import { useOrders } from '../../contexts/OrdersContext';
 import { useProductos } from '../../contexts/ProductosContext';
 import { useMesas } from '../../contexts/MesasContext';
+import { useAuth } from '../../contexts/useAuth';
 import ProtectedRoute from '../auth/ProtectedRoute';
-// 1. Importar interfaces
 import { Mesa, Order, OrderItem } from '../../types';
 
 interface OrderForm {
@@ -22,6 +22,7 @@ const AdminOrders: React.FC = () => {
   const { orders, loading } = useOrders();
   const { products } = useProductos();
   const { tables } = useMesas();
+  const { user } = useAuth();
   const [form, setForm] = useState<OrderForm>({
     tableId: '',
     items: [],
@@ -39,18 +40,17 @@ const AdminOrders: React.FC = () => {
   const filteredOrders = useMemo(() => {
     let filtered = orders;
     if (search.trim()) {
-      filtered = filtered.filter((order: Order) => { // 2. Order
-        const mesa = tables.find((t: Mesa) => t.id === order.tableId); // 3. Mesa
-        // 1 y 2: Mesa #${mesa.numero}
+      filtered = filtered.filter((order: Order) => {
+        const mesa = tables.find((t: Mesa) => t.id === order.tableId);
         const mesaMatch = mesa && `Mesa #${mesa?.numero}`.toLowerCase().includes(search.toLowerCase());
-        const productMatch = order.items.some((item: OrderItem) => // 4. OrderItem
+        const productMatch = order.items.some((item: OrderItem) =>
           (item.name ?? 'Producto').toLowerCase().includes(search.toLowerCase())
         );
         return mesaMatch || productMatch;
       });
     }
     if (statusFilter) {
-      filtered = filtered.filter((order: Order) => order.status === statusFilter); // 2. Order
+      filtered = filtered.filter((order: Order) => order.status === statusFilter);
     }
     return filtered;
   }, [orders, search, statusFilter, tables]);
@@ -158,7 +158,7 @@ const AdminOrders: React.FC = () => {
             required
           >
             <option value="">Selecciona una mesa</option>
-            {tables.map((table: Mesa) => ( // 5. Mesa
+            {tables.map((table: Mesa) => (
               <option key={table.id} value={table.id}>
                 Mesa #{table.numero}
               </option>

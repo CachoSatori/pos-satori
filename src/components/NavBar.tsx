@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Logout from '../modules/auth/Logout';
 import { doc, getDoc } from 'firebase/firestore';
-import { db, logError } from '../services/firebase';
+import { db, logError } from '../firebase';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 

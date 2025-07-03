@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { collection, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore';
 import { toast } from 'react-toastify';
-import { db } from '../services/firebase';
+import { db } from '../firebase';
 
 interface Product {
   id: string;

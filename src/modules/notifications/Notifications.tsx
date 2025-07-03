@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useOrders } from '../../contexts/OrdersContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import { requestFCMToken, onForegroundMessage, logError } from '../../services/firebase';
+import { requestFCMToken, onForegroundMessage, logError } from '../../firebase';
 
 const Notifications: React.FC = () => {
   const { orders } = useOrders();
