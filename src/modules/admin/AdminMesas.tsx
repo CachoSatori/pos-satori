@@ -15,7 +15,7 @@ interface TableForm {
 
 const AdminMesas: React.FC = () => {
   const { tables, loading } = useMesas();
-  const { user } = useAuth();
+  useAuth(); // Solo para asegurar contexto, puedes quitar si no usas user
   const [form, setForm] = useState<TableForm>({ number: 0, status: 'available' });
   const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();

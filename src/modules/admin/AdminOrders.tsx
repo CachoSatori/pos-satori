@@ -8,7 +8,7 @@ import { useProductos } from '../../contexts/ProductosContext';
 import { useMesas } from '../../contexts/MesasContext';
 import { useAuth } from '../../contexts/useAuth';
 import ProtectedRoute from '../auth/ProtectedRoute';
-import { Mesa, Order, OrderItem } from '../../types';
+import { Table, Order, OrderItem, Product } from '../../types';
 
 interface OrderForm {
   tableId: string;
@@ -22,7 +22,7 @@ const AdminOrders: React.FC = () => {
   const { orders, loading } = useOrders();
   const { products } = useProductos();
   const { tables } = useMesas();
-  const { user } = useAuth();
+  useAuth(); // Solo para asegurar contexto, puedes quitar si no usas user
   const [form, setForm] = useState<OrderForm>({
     tableId: '',
     items: [],
@@ -41,12 +41,12 @@ const AdminOrders: React.FC = () => {
     let filtered = orders;
     if (search.trim()) {
       filtered = filtered.filter((order: Order) => {
-        const mesa = tables.find((t: Mesa) => t.id === order.tableId);
-        const mesaMatch = mesa && `Mesa #${mesa?.numero}`.toLowerCase().includes(search.toLowerCase());
+        const table = tables.find((t: Table) => t.id === order.tableId);
+        const tableMatch = table && `Mesa #${table.number}`.toLowerCase().includes(search.toLowerCase());
         const productMatch = order.items.some((item: OrderItem) =>
           (item.name ?? 'Producto').toLowerCase().includes(search.toLowerCase())
         );
-        return mesaMatch || productMatch;
+        return tableMatch || productMatch;
       });
     }
     if (statusFilter) {
@@ -60,7 +60,7 @@ const AdminOrders: React.FC = () => {
   const paginatedOrders = filteredOrders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleAddItem = () => {
-    const product = products.find(p => p.id === selectedProduct);
+    const product = products.find((p: Product) => p.id === selectedProduct);
     if (!product || quantity < 1) return;
     setForm({
       ...form,
@@ -135,32 +135,32 @@ const AdminOrders: React.FC = () => {
   if (loading) return <div className="text-text">Cargando...</div>;
 
   return (
-    <ProtectedRoute>
-      <div className="bg-primary text-text min-h-screen p-8">
+    <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+      <div className="bg-[#1C2526] text-[#FFFFFF] min-h-screen p-8">
         <div className="flex items-center mb-8">
           <button
             onClick={() => navigate('/')}
-            className="bg-accent text-text px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-accent/80 focus:ring-2 focus:ring-accent transition"
+            className="bg-[#00A6A6] text-[#FFFFFF] px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-[#009090] focus:ring-2 focus:ring-[#00A6A6] transition"
           >
             ← Volver al Inicio
           </button>
-          <h1 className="text-4xl font-bold ml-6 text-accent drop-shadow">Administrar Órdenes</h1>
+          <h1 className="text-4xl font-bold ml-6 text-[#00A6A6] drop-shadow">Administrar Órdenes</h1>
         </div>
         <form
           onSubmit={handleAddOrUpdate}
-          className="mb-10 bg-secondary p-8 rounded-xl shadow-lg grid gap-6 max-w-2xl mx-auto"
+          className="mb-10 bg-[#16213e] p-8 rounded-xl shadow-lg grid gap-6 max-w-2xl mx-auto"
         >
           <select
             name="tableId"
             value={form.tableId}
             onChange={e => setForm({ ...form, tableId: e.target.value })}
-            className="p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text text-lg"
+            className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
             required
           >
             <option value="">Selecciona una mesa</option>
-            {tables.map((table: Mesa) => (
+            {tables.map((table: Table) => (
               <option key={table.id} value={table.id}>
-                Mesa #{table.numero}
+                Mesa #{table.number}
               </option>
             ))}
           </select>
@@ -168,10 +168,10 @@ const AdminOrders: React.FC = () => {
             <select
               value={selectedProduct}
               onChange={e => setSelectedProduct(e.target.value)}
-              className="flex-1 p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text text-lg"
+              className="flex-1 p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
             >
               <option value="">Selecciona un producto</option>
-              {products.map(product => (
+              {products.map((product: Product) => (
                 <option key={product.id} value={product.id}>
                   {product.name} (${product.price})
                 </option>
@@ -182,13 +182,13 @@ const AdminOrders: React.FC = () => {
               min={1}
               value={quantity}
               onChange={e => setQuantity(Number(e.target.value))}
-              className="w-24 p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text text-lg"
+              className="w-24 p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
               placeholder="Cantidad"
             />
             <button
               type="button"
               onClick={handleAddItem}
-              className="bg-accent text-text px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-accent/80 focus:ring-2 focus:ring-accent transition text-lg"
+              className="bg-[#00A6A6] text-[#FFFFFF] px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-[#009090] focus:ring-2 focus:ring-[#00A6A6] transition text-lg"
               disabled={!selectedProduct}
             >
               Añadir
@@ -204,7 +204,7 @@ const AdminOrders: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(idx)}
-                    className="bg-danger text-text px-3 py-1 rounded-xl font-bold shadow hover:bg-opacity-80 focus:ring-2 focus:ring-danger transition text-sm"
+                    className="bg-red-600 text-[#FFFFFF] px-3 py-1 rounded-xl font-bold shadow hover:bg-opacity-80 focus:ring-2 focus:ring-red-600 transition text-sm"
                   >
                     Quitar
                   </button>
@@ -220,7 +220,7 @@ const AdminOrders: React.FC = () => {
             name="status"
             value={form.status}
             onChange={e => setForm({ ...form, status: e.target.value })}
-            className="p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text text-lg"
+            className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
           >
             <option value="pending">Pendiente</option>
             <option value="completed">Completada</option>
@@ -229,14 +229,14 @@ const AdminOrders: React.FC = () => {
           <div className="flex gap-4">
             <button
               type="submit"
-              className="flex-1 bg-accent text-text p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-accent transition text-lg"
+              className="flex-1 bg-[#00A6A6] text-[#FFFFFF] p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-[#00A6A6] transition text-lg"
             >
               {editingId ? 'Actualizar' : 'Agregar'} Orden
             </button>
             {editingId && (
               <button
                 type="button"
-                className="flex-1 bg-gray-400 text-text p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-80 focus:ring-2 focus:ring-gray-400 transition text-lg"
+                className="flex-1 bg-gray-400 text-[#FFFFFF] p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-80 focus:ring-2 focus:ring-gray-400 transition text-lg"
                 onClick={() => {
                   setForm({ tableId: '', items: [], status: 'pending' });
                   setEditingId(null);
@@ -249,7 +249,7 @@ const AdminOrders: React.FC = () => {
         </form>
 
         {/* Search and filter controls */}
-        <div className="bg-secondary rounded-xl shadow-lg p-6 mb-8 flex flex-col md:flex-row gap-4 items-center max-w-4xl mx-auto">
+        <div className="bg-[#16213e] rounded-xl shadow-lg p-6 mb-8 flex flex-col md:flex-row gap-4 items-center max-w-4xl mx-auto">
           <input
             type="text"
             placeholder="Buscar por mesa o producto..."
@@ -258,7 +258,7 @@ const AdminOrders: React.FC = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="flex-1 p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text text-lg"
+            className="flex-1 p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
           />
           <select
             value={statusFilter}
@@ -266,7 +266,7 @@ const AdminOrders: React.FC = () => {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text text-lg"
+            className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
           >
             <option value="">Todos los estados</option>
             <option value="pending">Pendiente</option>
@@ -280,21 +280,20 @@ const AdminOrders: React.FC = () => {
           {paginatedOrders.map((order: Order) => (
             <div
               key={order.id}
-              className="bg-secondary p-8 rounded-xl shadow-lg flex flex-col justify-between hover:shadow-2xl transition"
+              className="bg-[#16213e] p-8 rounded-xl shadow-lg flex flex-col justify-between hover:shadow-2xl transition"
             >
               <div>
-                <h2 className="text-2xl font-bold text-accent mb-2">
-                  {/* 2: tables.find((t: any) => t.id === order.tableId)?.numero */}
-                  Mesa #{tables.find((t: any) => t.id === order.tableId)?.numero || 'N/A'}
+                <h2 className="text-2xl font-bold text-[#00A6A6] mb-2">
+                  Mesa #{tables.find((t: Table) => t.id === order.tableId)?.number || 'N/A'}
                 </h2>
                 <p className="mb-2 text-lg">
                   Estado:{' '}
                   <span
                     className={`font-semibold ${
                       order.status === 'completed'
-                        ? 'text-accent'
+                        ? 'text-[#00A6A6]'
                         : order.status === 'cancelled'
-                        ? 'text-danger'
+                        ? 'text-red-600'
                         : 'text-yellow-400'
                     }`}
                   >
@@ -339,7 +338,7 @@ const AdminOrders: React.FC = () => {
                     color: '#fff',
                     border: '1px solid #00A6A6'
                   }}
-                  className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-accent transition text-lg"
+                  className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-[#00A6A6] transition text-lg"
                 >
                   Editar
                 </button>
@@ -353,7 +352,7 @@ const AdminOrders: React.FC = () => {
                     color: '#fff',
                     border: '1px solid #00A6A6'
                   }}
-                  className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-danger transition text-lg"
+                  className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-red-600 transition text-lg"
                 >
                   Eliminar
                 </button>
@@ -368,7 +367,7 @@ const AdminOrders: React.FC = () => {
             <button
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
-              className="bg-accent text-text px-4 py-2 rounded-xl font-bold shadow hover:bg-accent/80 focus:ring-2 focus:ring-accent transition disabled:opacity-50"
+              className="bg-[#00A6A6] text-[#FFFFFF] px-4 py-2 rounded-xl font-bold shadow hover:bg-[#009090] focus:ring-2 focus:ring-[#00A6A6] transition disabled:opacity-50"
             >
               Anterior
             </button>
@@ -378,7 +377,7 @@ const AdminOrders: React.FC = () => {
             <button
               onClick={() => setPage(page + 1)}
               disabled={page === totalPages}
-              className="bg-accent text-text px-4 py-2 rounded-xl font-bold shadow hover:bg-accent/80 focus:ring-2 focus:ring-accent transition disabled:opacity-50"
+              className="bg-[#00A6A6] text-[#FFFFFF] px-4 py-2 rounded-xl font-bold shadow hover:bg-[#009090] focus:ring-2 focus:ring-[#00A6A6] transition disabled:opacity-50"
             >
               Siguiente
             </button>

@@ -1,26 +1,34 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { db } from '../firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { Table } from '../types';
 
-// 1. Interfaz Mesa
-interface Mesa {
-  id: string;
-  numero: number;
-  estado: 'libre' | 'ocupada' | 'reservada';
-}
-
-// 2. Interfaz MesasContextType
+// Interfaz del contexto para mesas
 interface MesasContextType {
-  tables: Mesa[];
-  setTables: React.Dispatch<React.SetStateAction<Mesa[]>>;
+  tables: Table[];
+  setTables: React.Dispatch<React.SetStateAction<Table[]>>;
   loading: boolean;
 }
 
-// 3. Crear el contexto
+// Crear el contexto
 const MesasContext = createContext<MesasContextType | undefined>(undefined);
 
-// 4. MesasProvider como componente React que retorna un ReactNode
+// Provider que obtiene las mesas desde Firestore y las expone como Table[]
 export const MesasProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [tables, setTables] = useState<Mesa[]>([]);
+  const [tables, setTables] = useState<Table[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'tables'), (snapshot) => {
+      const mesas: Table[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...(doc.data() as Omit<Table, 'id'>)
+      }));
+      setTables(mesas);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <MesasContext.Provider value={{ tables, setTables, loading }}>
@@ -29,7 +37,7 @@ export const MesasProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 };
 
-// 5. Mantener useMesas sin cambios
+// Hook para consumir el contexto de mesas
 export const useMesas = () => {
   const context = useContext(MesasContext);
   if (!context) {

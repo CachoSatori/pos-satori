@@ -1,7 +1,13 @@
+export interface Table {
+  id: string;
+  number: number;
+  status: 'available' | 'occupied';
+}
+
 export interface Mesa {
   id: string;
-  numero: number;
-  estado: 'libre' | 'ocupada' | 'reservada';
+  number: number;
+  status: 'available' | 'occupied';
 }
 
 export interface Product {
@@ -23,11 +29,4 @@ export interface Order {
   items: OrderItem[];
   status: 'pending' | 'completed' | 'cancelled';
   createdAt: string;
-}
-
-// Definición estricta: Table.number es de tipo number
-export interface Table {
-  id: string;
-  number: number;
-  status: 'available' | 'occupied';
 }
