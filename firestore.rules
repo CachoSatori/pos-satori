@@ -1,7 +1,6 @@
-rules_version = '2';
+rules_version = "2";
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Reglas abiertas SOLO para demo: permite leer y escribir cualquier documento
     match /{document=**} {
       allow read, write: if true;
     }

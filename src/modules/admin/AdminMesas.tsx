@@ -6,11 +6,13 @@ import { db } from '../../firebase';
 import { useMesas } from '../../contexts/MesasContext';
 import { useAuth } from '../../contexts/useAuth';
 import ProtectedRoute from '../auth/ProtectedRoute';
-import { Table } from '../../types';
+import type { Table } from '../../types';
+
+type TableStatus = 'available' | 'occupied' | 'reserved';
 
 interface TableForm {
   number: number;
-  status: 'available' | 'occupied';
+  status: TableStatus;
 }
 
 const AdminMesas: React.FC = () => {
@@ -89,11 +91,12 @@ const AdminMesas: React.FC = () => {
           <select
             name="status"
             value={form.status}
-            onChange={(e) => setForm({ ...form, status: e.target.value as 'available' | 'occupied' })}
+            onChange={(e) => setForm({ ...form, status: e.target.value as TableStatus })}
             className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
           >
             <option value="available">Disponible</option>
             <option value="occupied">Ocupada</option>
+            <option value="reserved">Reservada</option>
           </select>
           <div className="flex gap-4">
             <button
@@ -126,8 +129,18 @@ const AdminMesas: React.FC = () => {
                 <h2 className="text-2xl font-bold text-[#00A6A6] mb-2">Mesa #{table.number}</h2>
                 <p className="mb-2 text-lg">
                   Estado:{' '}
-                  <span className={`font-semibold ${table.status === 'available' ? 'text-[#00A6A6]' : 'text-red-500'}`}>
-                    {table.status === 'available' ? 'Disponible' : 'Ocupada'}
+                  <span className={`font-semibold ${
+                    table.status === 'available'
+                      ? 'text-[#00A6A6]'
+                      : table.status === 'reserved'
+                      ? 'text-yellow-400'
+                      : 'text-red-500'
+                  }`}>
+                    {table.status === 'available'
+                      ? 'Disponible'
+                      : table.status === 'reserved'
+                      ? 'Reservada'
+                      : 'Ocupada'}
                   </span>
                 </p>
               </div>

@@ -8,12 +8,12 @@ import { useProductos } from '../../contexts/ProductosContext';
 import { useMesas } from '../../contexts/MesasContext';
 import { useAuth } from '../../contexts/useAuth';
 import ProtectedRoute from '../auth/ProtectedRoute';
-import { Table, Order, OrderItem, Product } from '../../types';
+import type { Table, Order, OrderItem, Product } from '../../types';
 
 interface OrderForm {
   tableId: string;
   items: OrderItem[];
-  status: string;
+  status: Order['status'];
 }
 
 const PAGE_SIZE = 6;
@@ -22,7 +22,7 @@ const AdminOrders: React.FC = () => {
   const { orders, loading } = useOrders();
   const { products } = useProductos();
   const { tables } = useMesas();
-  useAuth(); // Solo para asegurar contexto, puedes quitar si no usas user
+  useAuth();
   const [form, setForm] = useState<OrderForm>({
     tableId: '',
     items: [],
@@ -32,7 +32,7 @@ const AdminOrders: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<string>('');
   const [quantity, setQuantity] = useState<number>(1);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<Order['status'] | ''>('');
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
 
@@ -44,7 +44,10 @@ const AdminOrders: React.FC = () => {
         const table = tables.find((t: Table) => t.id === order.tableId);
         const tableMatch = table && `Mesa #${table.number}`.toLowerCase().includes(search.toLowerCase());
         const productMatch = order.items.some((item: OrderItem) =>
-          (item.name ?? 'Producto').toLowerCase().includes(search.toLowerCase())
+          (item.productId
+            ? products.find(p => p.id === item.productId)?.name ?? 'Producto'
+            : 'Producto'
+          ).toLowerCase().includes(search.toLowerCase())
         );
         return tableMatch || productMatch;
       });
@@ -53,23 +56,20 @@ const AdminOrders: React.FC = () => {
       filtered = filtered.filter((order: Order) => order.status === statusFilter);
     }
     return filtered;
-  }, [orders, search, statusFilter, tables]);
+  }, [orders, search, statusFilter, tables, products]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
   const paginatedOrders = filteredOrders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleAddItem = () => {
-    const product = products.find((p: Product) => p.id === selectedProduct);
-    if (!product || quantity < 1) return;
+    if (!selectedProduct || quantity < 1) return;
     setForm({
       ...form,
       items: [
         ...form.items,
         {
-          productId: product.id,
-          name: product.name,
-          price: product.price,
+          productId: selectedProduct,
           quantity,
         },
       ],
@@ -128,6 +128,16 @@ const AdminOrders: React.FC = () => {
       toast.success('Orden eliminada');
     } catch (error: unknown) {
       toast.error('Error al eliminar orden');
+      logError(error as Error);
+    }
+  };
+
+  const handleChangeStatus = async (order: Order, newStatus: Order['status']) => {
+    try {
+      await updateDoc(doc(db, 'orders', order.id), { status: newStatus });
+      toast.success(`Estado cambiado a ${newStatus.replace('_', ' ')}`);
+    } catch (error) {
+      toast.error('Error al cambiar estado');
       logError(error as Error);
     }
   };
@@ -197,32 +207,43 @@ const AdminOrders: React.FC = () => {
           <div>
             <h2 className="text-xl font-bold mb-2">Productos en la orden</h2>
             <ul className="mb-4">
-              {form.items.map((item, idx) => (
-                <li key={idx} className="flex items-center gap-4 mb-2">
-                  <span className="flex-1">{item.name ?? 'Producto'} (x{item.quantity})</span>
-                  <span className="font-semibold">${typeof item.price === 'number' ? (item.price * item.quantity).toFixed(2) : '0.00'}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveItem(idx)}
-                    className="bg-red-600 text-[#FFFFFF] px-3 py-1 rounded-xl font-bold shadow hover:bg-opacity-80 focus:ring-2 focus:ring-red-600 transition text-sm"
-                  >
-                    Quitar
-                  </button>
-                </li>
-              ))}
+              {form.items.map((item, idx) => {
+                const product = products.find(p => p.id === item.productId);
+                return (
+                  <li key={idx} className="flex items-center gap-4 mb-2">
+                    <span className="flex-1">
+                      {product ? product.name : 'Producto eliminado'} (x{item.quantity})
+                    </span>
+                    <span className="font-semibold">
+                      ${product ? (product.price * item.quantity).toFixed(2) : '0.00'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(idx)}
+                      className="bg-red-600 text-[#FFFFFF] px-3 py-1 rounded-xl font-bold shadow hover:bg-opacity-80 focus:ring-2 focus:ring-red-600 transition text-sm"
+                    >
+                      Quitar
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
             <div className="font-bold text-lg">
               Total: $
-              {form.items.reduce((sum, item) => sum + (typeof item.price === 'number' ? item.price * item.quantity : 0), 0).toFixed(2)}
+              {form.items.reduce((sum, item) => {
+                const product = products.find(p => p.id === item.productId);
+                return sum + (product ? product.price * item.quantity : 0);
+              }, 0).toFixed(2)}
             </div>
           </div>
           <select
             name="status"
             value={form.status}
-            onChange={e => setForm({ ...form, status: e.target.value })}
+            onChange={e => setForm({ ...form, status: e.target.value as Order['status'] })}
             className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
           >
             <option value="pending">Pendiente</option>
+            <option value="in_progress">En Progreso</option>
             <option value="completed">Completada</option>
             <option value="cancelled">Cancelada</option>
           </select>
@@ -263,13 +284,14 @@ const AdminOrders: React.FC = () => {
           <select
             value={statusFilter}
             onChange={e => {
-              setStatusFilter(e.target.value);
+              setStatusFilter(e.target.value as Order['status'] | '');
               setPage(1);
             }}
             className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
           >
             <option value="">Todos los estados</option>
             <option value="pending">Pendiente</option>
+            <option value="in_progress">En Progreso</option>
             <option value="completed">Completada</option>
             <option value="cancelled">Cancelada</option>
           </select>
@@ -294,24 +316,35 @@ const AdminOrders: React.FC = () => {
                         ? 'text-[#00A6A6]'
                         : order.status === 'cancelled'
                         ? 'text-red-600'
+                        : order.status === 'in_progress'
+                        ? 'text-yellow-400'
                         : 'text-yellow-400'
                     }`}
                   >
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    {order.status === 'pending'
+                      ? 'Pendiente'
+                      : order.status === 'in_progress'
+                      ? 'En Progreso'
+                      : order.status === 'completed'
+                      ? 'Completada'
+                      : 'Cancelada'}
                   </span>
                 </p>
                 <ul className="mb-2">
                   {Array.isArray(order.items) && order.items.length > 0 ? (
-                    order.items.map((item: OrderItem, idx: number) => (
-                      <li key={idx} className="flex justify-between">
-                        <span>
-                          {item.name ?? 'Producto'} (x{item.quantity})
-                        </span>
-                        <span>
-                          ${typeof item.price === 'number' ? (item.price * item.quantity).toFixed(2) : '0.00'}
-                        </span>
-                      </li>
-                    ))
+                    order.items.map((item: OrderItem, idx: number) => {
+                      const product = products.find(p => p.id === item.productId);
+                      return (
+                        <li key={idx} className="flex justify-between">
+                          <span>
+                            {product ? product.name : 'Producto eliminado'} (x{item.quantity})
+                          </span>
+                          <span>
+                            ${product ? (product.price * item.quantity).toFixed(2) : '0.00'}
+                          </span>
+                        </li>
+                      );
+                    })
                   ) : (
                     <li className="text-gray-400 italic">Sin productos</li>
                   )}
@@ -320,14 +353,16 @@ const AdminOrders: React.FC = () => {
                   Total: $
                   {Array.isArray(order.items) && order.items.length > 0
                     ? order.items.reduce(
-                        (sum: number, item: OrderItem) =>
-                          sum + (typeof item.price === 'number' ? item.price * item.quantity : 0),
+                        (sum: number, item: OrderItem) => {
+                          const product = products.find(p => p.id === item.productId);
+                          return sum + (product ? product.price * item.quantity : 0);
+                        },
                         0
                       ).toFixed(2)
                     : '0.00'}
                 </div>
               </div>
-              <div className="flex gap-2 mt-4">
+              <div className="flex gap-2 mt-4 flex-wrap">
                 <button
                   onClick={() => handleEdit(order)}
                   style={{
@@ -356,6 +391,39 @@ const AdminOrders: React.FC = () => {
                 >
                   Eliminar
                 </button>
+                {/* Botones de cambio de estado */}
+                {order.status !== 'pending' && (
+                  <button
+                    onClick={() => handleChangeStatus(order, 'pending')}
+                    className="flex-1 bg-yellow-400 text-[#1C2526] p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-yellow-400 transition text-lg"
+                  >
+                    Marcar como Pendiente
+                  </button>
+                )}
+                {order.status !== 'in_progress' && (
+                  <button
+                    onClick={() => handleChangeStatus(order, 'in_progress')}
+                    className="flex-1 bg-yellow-400 text-[#1C2526] p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-yellow-400 transition text-lg"
+                  >
+                    En Progreso
+                  </button>
+                )}
+                {order.status !== 'completed' && (
+                  <button
+                    onClick={() => handleChangeStatus(order, 'completed')}
+                    className="flex-1 bg-[#00A6A6] text-[#FFFFFF] p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-[#00A6A6] transition text-lg"
+                  >
+                    Marcar como Completada
+                  </button>
+                )}
+                {order.status !== 'cancelled' && (
+                  <button
+                    onClick={() => handleChangeStatus(order, 'cancelled')}
+                    className="flex-1 bg-red-600 text-[#FFFFFF] p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-red-600 transition text-lg"
+                  >
+                    Cancelar
+                  </button>
+                )}
               </div>
             </div>
           ))}

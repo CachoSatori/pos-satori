@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useOrders } from '../../contexts/OrdersContext';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/useAuth';
 import { toast } from 'react-toastify';
 import { requestFCMToken, onForegroundMessage, logError } from '../../firebase';
+import type { Order } from '../../types';
+import type { Timestamp } from 'firebase/firestore';
 
 const Notifications: React.FC = () => {
   const { orders } = useOrders();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<{ id: string; message: string; time: string }[]>([]);
 
-  // Listen for FCM push notifications
+  // Solicitar permiso y token FCM al iniciar sesión
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     if (user) {
       requestFCMToken()
         .then(token => {
           if (token) {
-            toast.success('Notificaciones activadas');
+            toast.success('Notificaciones push activadas');
           }
         })
         .catch((error: unknown) => {
@@ -46,15 +48,23 @@ const Notifications: React.FC = () => {
     };
   }, [user]);
 
-  // Listen for new orders in real time
+  // Notificación local para nuevas órdenes usando Order.createdAt como Timestamp
   useEffect(() => {
     if (!orders.length) return;
-    const latestOrder = orders[orders.length - 1];
+    const latestOrder: Order = orders[orders.length - 1];
+    let createdAtTime = '';
+    if (latestOrder.createdAt && typeof latestOrder.createdAt === 'object' && 'toDate' in latestOrder.createdAt) {
+      createdAtTime = (latestOrder.createdAt as Timestamp).toDate().toLocaleTimeString();
+    } else if (typeof latestOrder.createdAt === 'number') {
+      createdAtTime = new Date(latestOrder.createdAt).toLocaleTimeString();
+    } else {
+      createdAtTime = new Date().toLocaleTimeString();
+    }
     setNotifications(prev => [
       {
         id: latestOrder.id,
         message: `Nueva orden de la mesa #${latestOrder.tableId} (${latestOrder.items.length} productos)`,
-        time: new Date(latestOrder.createdAt).toLocaleTimeString(),
+        time: createdAtTime,
       },
       ...prev.filter(n => n.id !== latestOrder.id),
     ]);
@@ -62,9 +72,9 @@ const Notifications: React.FC = () => {
   }, [orders.length]);
 
   return (
-    <div className="bg-primary text-text min-h-screen p-8 flex flex-col items-center">
-      <h1 className="text-3xl font-bold mb-6 text-accent">Notificaciones</h1>
-      <div className="w-full max-w-2xl bg-secondary rounded-xl shadow-lg p-6">
+    <div className="bg-[#1C2526] text-[#FFFFFF] min-h-screen p-8 flex flex-col items-center">
+      <h1 className="text-3xl font-bold mb-6 text-[#00A6A6]">Notificaciones</h1>
+      <div className="w-full max-w-2xl bg-[#16213e] rounded-xl shadow-lg p-6">
         {notifications.length === 0 ? (
           <div className="text-center text-lg text-gray-400">Sin notificaciones recientes</div>
         ) : (
@@ -72,7 +82,7 @@ const Notifications: React.FC = () => {
             {notifications.map(n => (
               <li
                 key={n.id}
-                className="bg-primary rounded-xl p-4 shadow flex flex-col md:flex-row md:items-center md:justify-between"
+                className="bg-[#1C2526] rounded-xl p-4 shadow flex flex-col md:flex-row md:items-center md:justify-between"
               >
                 <span className="font-semibold">{n.message}</span>
                 <span className="text-sm text-gray-400 mt-2 md:mt-0">{n.time}</span>

@@ -4,14 +4,18 @@ import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestor
 import { toast } from 'react-toastify';
 import { db } from '../../firebase';
 import { useProductos } from '../../contexts/ProductosContext';
+import { useAuth } from '../../contexts/useAuth';
+import ProtectedRoute from '../auth/ProtectedRoute';
+import { Product } from '../../types';
 
 interface ProductForm {
   name: string;
   price: number;
-  category: string;
+  category?: string;
 }
 
 const AdminProductos: React.FC = () => {
+  useAuth(); // Solo para asegurar contexto, puedes quitar si no usas user
   const { products, loading } = useProductos();
   const [form, setForm] = useState<ProductForm>({ name: '', price: 0, category: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -40,8 +44,8 @@ const AdminProductos: React.FC = () => {
     }
   };
 
-  const handleEdit = (product: { id: string; name: string; price: number; category?: string }) => {
-    setForm({ name: product.name, price: product.price, category: product.category || '' });
+  const handleEdit = (product: Product) => {
+    setForm({ name: product.name, price: product.price, category: (product as any).category || '' });
     setEditingId(product.id);
   };
 
@@ -59,100 +63,102 @@ const AdminProductos: React.FC = () => {
   if (loading) return <div className="text-text">Cargando...</div>;
 
   return (
-    <div className="bg-primary text-text min-h-screen p-8">
-      <div className="flex items-center mb-8">
-        <button
-          onClick={() => navigate('/')}
-          className="bg-accent text-text px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-accent/80 focus:ring-2 focus:ring-accent transition"
-        >
-          ← Volver al Inicio
-        </button>
-        <h1 className="text-4xl font-bold ml-6 text-accent drop-shadow">Administrar Productos</h1>
-      </div>
-      <form
-        onSubmit={handleAddOrUpdate}
-        className="mb-10 bg-secondary p-8 rounded-xl shadow-lg grid gap-6 max-w-xl mx-auto"
-      >
-        <input
-          type="text"
-          name="name"
-          placeholder="Nombre"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text placeholder:text-gray-400 text-lg"
-          required
-        />
-        <input
-          type="number"
-          name="price"
-          placeholder="Precio"
-          value={form.price}
-          onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) })}
-          className="p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text placeholder:text-gray-400 text-lg"
-          required
-        />
-        <input
-          type="text"
-          name="category"
-          placeholder="Categoría"
-          value={form.category}
-          onChange={(e) => setForm({ ...form, category: e.target.value })}
-          className="p-4 rounded-xl border border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-primary text-text placeholder:text-gray-400 text-lg"
-        />
-        <div className="flex gap-4">
+    <ProtectedRoute allowedRoles={['admin']}>
+      <div className="bg-[#1C2526] text-[#FFFFFF] min-h-screen p-8">
+        <div className="flex items-center mb-8">
           <button
-            type="submit"
-            className="flex-1 bg-accent text-text p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-accent transition text-lg"
+            onClick={() => navigate('/')}
+            className="bg-[#00A6A6] text-[#FFFFFF] px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-[#009090] focus:ring-2 focus:ring-[#00A6A6] transition"
           >
-            {editingId ? 'Actualizar' : 'Agregar'} Producto
+            ← Volver al Inicio
           </button>
-          {editingId && (
-            <button
-              type="button"
-              className="flex-1 bg-gray-400 text-text p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-80 focus:ring-2 focus:ring-gray-400 transition text-lg"
-              onClick={() => {
-                setForm({ name: '', price: 0, category: '' });
-                setEditingId(null);
-              }}
-            >
-              Cancelar
-            </button>
-          )}
+          <h1 className="text-4xl font-bold ml-6 text-[#00A6A6] drop-shadow">Administrar Productos</h1>
         </div>
-      </form>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="bg-secondary p-8 rounded-xl shadow-lg flex flex-col justify-between hover:shadow-2xl transition"
-          >
-            <div>
-              <h2 className="text-2xl font-bold text-accent mb-2">{product.name}</h2>
-              <p className="mb-1 text-lg">
-                Precio: <span className="font-semibold">${product.price}</span>
-              </p>
-              <p className="mb-2 text-lg">
-                Categoría: <span className="italic">{product.category || 'Sin categoría'}</span>
-              </p>
-            </div>
-            <div className="flex gap-2 mt-4">
+        <form
+          onSubmit={handleAddOrUpdate}
+          className="mb-10 bg-[#16213e] p-8 rounded-xl shadow-lg grid gap-6 max-w-xl mx-auto"
+        >
+          <input
+            type="text"
+            name="name"
+            placeholder="Nombre"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] placeholder:text-gray-400 text-lg"
+            required
+          />
+          <input
+            type="number"
+            name="price"
+            placeholder="Precio"
+            value={form.price === 0 ? '' : form.price}
+            onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })}
+            className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] placeholder:text-gray-400 text-lg"
+            required
+          />
+          <input
+            type="text"
+            name="category"
+            placeholder="Categoría"
+            value={form.category || ''}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] placeholder:text-gray-400 text-lg"
+          />
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="flex-1 bg-[#00A6A6] text-[#FFFFFF] p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-[#00A6A6] transition text-lg"
+            >
+              {editingId ? 'Actualizar' : 'Agregar'} Producto
+            </button>
+            {editingId && (
               <button
-                onClick={() => handleEdit(product)}
-                className="flex-1 bg-accent text-text p-3 rounded-xl font-bold hover:bg-opacity-90 focus:ring-2 focus:ring-accent transition text-lg"
+                type="button"
+                className="flex-1 bg-gray-400 text-[#FFFFFF] p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-80 focus:ring-2 focus:ring-gray-400 transition text-lg"
+                onClick={() => {
+                  setForm({ name: '', price: 0, category: '' });
+                  setEditingId(null);
+                }}
               >
-                Editar
+                Cancelar
               </button>
-              <button
-                onClick={() => handleDelete(product.id)}
-                className="flex-1 bg-danger text-text p-3 rounded-xl font-bold hover:bg-opacity-90 focus:ring-2 focus:ring-danger transition text-lg"
-              >
-                Eliminar
-              </button>
-            </div>
+            )}
           </div>
-        ))}
+        </form>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {products.map((product: Product & { category?: string }) => (
+            <div
+              key={product.id}
+              className="bg-[#16213e] p-8 rounded-xl shadow-lg flex flex-col justify-between hover:shadow-2xl transition"
+            >
+              <div>
+                <h2 className="text-2xl font-bold text-[#00A6A6] mb-2">{product.name}</h2>
+                <p className="mb-1 text-lg">
+                  Precio: <span className="font-semibold">${product.price}</span>
+                </p>
+                <p className="mb-2 text-lg">
+                  Categoría: <span className="italic">{(product as any).category || 'Sin categoría'}</span>
+                </p>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => handleEdit(product)}
+                  className="flex-1 bg-[#00A6A6] text-[#FFFFFF] p-3 rounded-xl font-bold hover:bg-opacity-90 focus:ring-2 focus:ring-[#00A6A6] transition text-lg"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleDelete(product.id)}
+                  className="flex-1 bg-red-600 text-[#FFFFFF] p-3 rounded-xl font-bold hover:bg-opacity-90 focus:ring-2 focus:ring-red-600 transition text-lg"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 };
 

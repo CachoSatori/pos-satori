@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getMessaging, isSupported } from 'firebase/messaging';
 
 // Configuración específica del proyecto pos-satori
@@ -16,8 +16,15 @@ const firebaseConfig = {
 // Evitar inicialización múltiple
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
+// Inicializar Auth
 const auth = getAuth(app);
-const db = initializeFirestore(app, {});
+
+// Inicializar Firestore con soporte offline y multi-tab
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
+
+// Inicializar Messaging solo si es soportado
 const messagingPromise = isSupported().then((supported) => {
   if (supported) {
     return getMessaging(app);

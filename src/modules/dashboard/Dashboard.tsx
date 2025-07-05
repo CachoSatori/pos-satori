@@ -15,69 +15,90 @@ import {
   BarElement,
   Title,
 } from 'chart.js';
-import { Order, OrderItem, Mesa } from '../../types';
+import type { Order, OrderItem, Product, Table } from '../../types';
+import type { Timestamp } from 'firebase/firestore';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 const Dashboard: React.FC = () => {
-  useAuth(); // Asegura que el usuario esté autenticado y refresca el contexto
+  useAuth();
   const { products, loading: loadingProducts } = useProductos();
   const { tables, loading: loadingTables } = useMesas();
   const { orders, loading: loadingOrders } = useOrders();
 
+  // Filtrar órdenes completadas
   const completedOrders = orders.filter((order: Order) => order.status === 'completed');
+
+  // Calcular ingresos totales
   const totalRevenue = completedOrders.reduce(
     (sum: number, order: Order) =>
       sum +
       order.items.reduce(
-        (orderSum: number, item: OrderItem) => orderSum + (item.price ?? 0) * item.quantity,
+        (orderSum: number, item: OrderItem) => {
+          // Buscar el producto por ID
+          const product = products.find(p => p.id === (item as any).productId || (item as any).product?.id);
+          return orderSum + ((product?.price ?? 0) * item.quantity);
+        },
         0
       ),
     0
   );
 
+  // Contar órdenes por estado
   const statusCounts = orders.reduce(
     (acc: Record<string, number>, order: Order) => {
       acc[order.status] = (acc[order.status] || 0) + 1;
       return acc;
     },
-    { pending: 0, completed: 0, cancelled: 0 }
+    { pending: 0, in_progress: 0, completed: 0, cancelled: 0 }
   );
 
   const statusPieData = {
-    labels: ['Pendiente', 'Completada', 'Cancelada'],
+    labels: ['Pendiente', 'En Progreso', 'Completada', 'Cancelada'],
     datasets: [
       {
         data: [
           statusCounts.pending,
+          statusCounts.in_progress,
           statusCounts.completed,
           statusCounts.cancelled,
         ],
-        backgroundColor: ['#FFD600', '#00A6A6', '#EF4444'],
-        borderColor: ['#FFD600', '#00A6A6', '#EF4444'],
+        backgroundColor: ['#FFD600', '#FFA600', '#00A6A6', '#EF4444'],
+        borderColor: ['#FFD600', '#FFA600', '#00A6A6', '#EF4444'],
         borderWidth: 1,
       },
     ],
   };
 
+  // Últimos 7 días
   const days = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
+    d.setHours(0, 0, 0, 0);
     return d;
   });
 
+  // Calcular ingresos por día
   const revenueByDay = days.map(day => {
     const dayStr = day.toISOString().slice(0, 10);
     const dayOrders = completedOrders.filter((order: Order) => {
       if (!order.createdAt) return false;
-      const orderDate = new Date(order.createdAt);
+      let orderDate: Date;
+      if (typeof order.createdAt === 'object' && 'toDate' in order.createdAt) {
+        orderDate = (order.createdAt as Timestamp).toDate();
+      } else {
+        orderDate = new Date(order.createdAt as any);
+      }
       return orderDate.toISOString().slice(0, 10) === dayStr;
     });
     return dayOrders.reduce(
       (sum: number, order: Order) =>
         sum +
         order.items.reduce(
-          (orderSum: number, item: OrderItem) => orderSum + (item.price ?? 0) * item.quantity,
+          (orderSum: number, item: OrderItem) => {
+            const product = products.find(p => p.id === (item as any).productId || (item as any).product?.id);
+            return orderSum + ((product?.price ?? 0) * item.quantity);
+          },
           0
         ),
       0

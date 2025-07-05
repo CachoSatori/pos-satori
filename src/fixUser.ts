@@ -1,5 +1,5 @@
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from './firebase.ts';
 
 // Script para crear/corregir usuario admin en Firestore
 async function fixUser(): Promise<void> {
