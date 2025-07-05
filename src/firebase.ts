@@ -19,10 +19,14 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 // Inicializar Auth
 const auth = getAuth(app);
 
-// Inicializar Firestore con soporte offline y multi-tab
-const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-});
+// Inicializar Firestore con persistencia condicional
+const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
+
+const db = isTest
+  ? initializeFirestore(app, {}) // Sin persistencia en pruebas
+  : initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    });
 
 // Inicializar Messaging solo si es soportado
 const messagingPromise = isSupported().then((supported) => {
