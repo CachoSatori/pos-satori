@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useOrders } from '../../contexts/OrdersContext';
 import { useProductos } from '../../contexts/ProductosContext';
 import { useMesas } from '../../contexts/MesasContext';
@@ -24,6 +24,10 @@ function formatDate(ts: Timestamp | Date | string, locale: string): string {
   return date.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+/**
+ * Componente Reports.
+ * Accesible, mobile-first y alineado a SDD.
+ */
 const Reports: React.FC = () => {
   useAuth();
   const { t, i18n } = useTranslation();
@@ -183,3 +187,10 @@ const Reports: React.FC = () => {
 };
 
 export default Reports;
+
+/**
+ * Sugerencias de pruebas (Vitest):
+ * - Renderiza loading correctamente.
+ * - Renderiza lista de reportes/órdenes.
+ * - Accesibilidad: aria-busy y roles correctos.
+ */

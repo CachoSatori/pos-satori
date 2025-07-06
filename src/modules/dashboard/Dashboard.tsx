@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useProductos } from '../../contexts/ProductosContext';
 import { useMesas } from '../../contexts/MesasContext';
@@ -17,6 +18,7 @@ import {
 } from 'chart.js';
 import type { Order, OrderItem, Product, Table } from '../../types';
 import type { Timestamp } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -25,6 +27,7 @@ const Dashboard: React.FC = () => {
   const { products, loading: loadingProducts } = useProductos();
   const { tables, loading: loadingTables } = useMesas();
   const { orders, loading: loadingOrders } = useOrders();
+  const { t } = useTranslation();
 
   // Filtrar órdenes completadas
   const completedOrders = orders.filter((order: Order) => order.status === 'completed');
@@ -131,11 +134,11 @@ const Dashboard: React.FC = () => {
     <ProtectedRoute allowedRoles={['admin', 'waiter']}>
       <div className="bg-[#1C2526] text-[#FFFFFF] min-h-screen flex items-center justify-center p-8">
         <div className="bg-[#16213e] rounded-xl shadow-lg p-8 flex flex-col gap-8 items-center w-full max-w-5xl">
-          <h1 className="text-4xl font-bold mb-4 text-center text-[#00A6A6]">Dashboard</h1>
+          <h1 className="text-4xl font-bold mb-4 text-center text-[#00A6A6]">{t('Dashboard')}</h1>
           <div className="flex flex-col md:flex-row gap-8 w-full justify-center">
             <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
               <span className="text-[#00A6A6] text-5xl font-bold mb-2">{products.length}</span>
-              <span className="text-lg font-semibold mb-4">Productos</span>
+              <span className="text-lg font-semibold mb-4">{t('Products')}</span>
               <Link
                 to="/admin"
                 style={{
@@ -153,12 +156,12 @@ const Dashboard: React.FC = () => {
                   marginTop: '16px'
                 }}
               >
-                Ver Productos
+                {t('View Products')}
               </Link>
             </div>
             <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
               <span className="text-[#00A6A6] text-5xl font-bold mb-2">{tables.length}</span>
-              <span className="text-lg font-semibold mb-4">Mesas</span>
+              <span className="text-lg font-semibold mb-4">{t('Tables')}</span>
               <Link
                 to="/mesas"
                 style={{
@@ -176,14 +179,14 @@ const Dashboard: React.FC = () => {
                   marginTop: '16px'
                 }}
               >
-                Ver Mesas
+                {t('View Tables')}
               </Link>
             </div>
             <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
               <span className="text-[#00A6A6] text-5xl font-bold mb-2">{orders.length}</span>
-              <span className="text-lg font-semibold mb-1">Órdenes</span>
+              <span className="text-lg font-semibold mb-1">{t('Orders')}</span>
               <span className="text-[#FFFFFF] text-lg mb-4">
-                Completadas: <span className="font-bold text-[#00A6A6]">{statusCounts.completed}</span>
+                {t('Completed')}: <span className="font-bold text-[#00A6A6]">{statusCounts.completed}</span>
               </span>
               <Link
                 to="/orders"
@@ -202,13 +205,13 @@ const Dashboard: React.FC = () => {
                   marginTop: '16px'
                 }}
               >
-                Ver Órdenes
+                {t('View Orders')}
               </Link>
             </div>
           </div>
           <div className="w-full flex flex-col md:flex-row gap-8 justify-center mt-8">
             <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
-              <span className="text-lg font-semibold mb-2">Ingresos Totales</span>
+              <span className="text-lg font-semibold mb-2">{t('Total Revenue')}</span>
               <span className="text-3xl font-bold text-[#00A6A6] mb-2">
                 ${totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
               </span>
@@ -227,7 +230,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
-              <span className="text-lg font-semibold mb-4">Órdenes por Estado</span>
+              <span className="text-lg font-semibold mb-4">{t('Orders by Status')}</span>
               <div className="w-full max-w-xs">
                 <Pie
                   data={statusPieData}
@@ -249,3 +252,10 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+
+/**
+ * Sugerencias de pruebas (Vitest):
+ * - Renderiza loading correctamente.
+ * - Renderiza lista de órdenes.
+ * - Accesibilidad: aria-busy y roles correctos.
+ */

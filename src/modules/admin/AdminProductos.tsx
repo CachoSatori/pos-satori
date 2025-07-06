@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
@@ -7,6 +7,7 @@ import { useProductos } from '../../contexts/ProductosContext';
 import { useAuth } from '../../contexts/useAuth';
 import ProtectedRoute from '../auth/ProtectedRoute';
 import { Product } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface ProductForm {
   name: string;
@@ -14,12 +15,17 @@ interface ProductForm {
   category?: string;
 }
 
+/**
+ * Componente para administración de productos.
+ * Accesible, mobile-first y alineado a SDD.
+ */
 const AdminProductos: React.FC = () => {
   useAuth(); // Solo para asegurar contexto, puedes quitar si no usas user
   const { products, loading } = useProductos();
   const [form, setForm] = useState<ProductForm>({ name: '', price: 0, category: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleAddOrUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +66,13 @@ const AdminProductos: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="text-text">Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen" aria-busy="true">
+        <span className="text-accent text-xl">{t('Loading products...')}</span>
+      </div>
+    );
+  }
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
@@ -72,7 +84,9 @@ const AdminProductos: React.FC = () => {
           >
             ← Volver al Inicio
           </button>
-          <h1 className="text-4xl font-bold ml-6 text-[#00A6A6] drop-shadow">Administrar Productos</h1>
+          <h1 className="text-4xl font-bold ml-6 text-[#00A6A6] drop-shadow">
+            {t('Administrar Productos')}
+          </h1>
         </div>
         <form
           onSubmit={handleAddOrUpdate}
@@ -81,7 +95,7 @@ const AdminProductos: React.FC = () => {
           <input
             type="text"
             name="name"
-            placeholder="Nombre"
+            placeholder={t('Nombre')}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] placeholder:text-gray-400 text-lg"
@@ -90,7 +104,7 @@ const AdminProductos: React.FC = () => {
           <input
             type="number"
             name="price"
-            placeholder="Precio"
+            placeholder={t('Precio')}
             value={form.price === 0 ? '' : form.price}
             onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })}
             className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] placeholder:text-gray-400 text-lg"
@@ -99,7 +113,7 @@ const AdminProductos: React.FC = () => {
           <input
             type="text"
             name="category"
-            placeholder="Categoría"
+            placeholder={t('Categoría')}
             value={form.category || ''}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
             className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] placeholder:text-gray-400 text-lg"
@@ -109,7 +123,7 @@ const AdminProductos: React.FC = () => {
               type="submit"
               className="flex-1 bg-[#00A6A6] text-[#FFFFFF] p-4 rounded-xl font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-[#00A6A6] transition text-lg"
             >
-              {editingId ? 'Actualizar' : 'Agregar'} Producto
+              {editingId ? t('Actualizar') : t('Agregar')} {t('Producto')}
             </button>
             {editingId && (
               <button
@@ -120,7 +134,7 @@ const AdminProductos: React.FC = () => {
                   setEditingId(null);
                 }}
               >
-                Cancelar
+                {t('Cancelar')}
               </button>
             )}
           </div>
@@ -134,10 +148,10 @@ const AdminProductos: React.FC = () => {
               <div>
                 <h2 className="text-2xl font-bold text-[#00A6A6] mb-2">{product.name}</h2>
                 <p className="mb-1 text-lg">
-                  Precio: <span className="font-semibold">${product.price}</span>
+                  {t('Precio')}: <span className="font-semibold">${product.price}</span>
                 </p>
                 <p className="mb-2 text-lg">
-                  Categoría: <span className="italic">{(product as any).category || 'Sin categoría'}</span>
+                  {t('Categoría')}: <span className="italic">{(product as any).category || t('Sin categoría')}</span>
                 </p>
               </div>
               <div className="flex gap-2 mt-4">
@@ -145,13 +159,13 @@ const AdminProductos: React.FC = () => {
                   onClick={() => handleEdit(product)}
                   className="flex-1 bg-[#00A6A6] text-[#FFFFFF] p-3 rounded-xl font-bold hover:bg-opacity-90 focus:ring-2 focus:ring-[#00A6A6] transition text-lg"
                 >
-                  Editar
+                  {t('Editar')}
                 </button>
                 <button
                   onClick={() => handleDelete(product.id)}
                   className="flex-1 bg-red-600 text-[#FFFFFF] p-3 rounded-xl font-bold hover:bg-opacity-90 focus:ring-2 focus:ring-red-600 transition text-lg"
                 >
-                  Eliminar
+                  {t('Eliminar')}
                 </button>
               </div>
             </div>
@@ -163,3 +177,10 @@ const AdminProductos: React.FC = () => {
 };
 
 export default AdminProductos;
+
+/**
+ * Sugerencias de pruebas (Vitest):
+ * - Renderiza loading correctamente.
+ * - Renderiza lista de productos.
+ * - Accesibilidad: aria-busy y roles correctos.
+ */

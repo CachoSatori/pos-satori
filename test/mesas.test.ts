@@ -1,3 +1,5 @@
+import { renderHook } from '@testing-library/react';
+import { MesasProvider, useMesas } from '../src/contexts/MesasContext';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { collection, addDoc, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../src/firebase';
@@ -34,3 +36,27 @@ describe('Firestore Mesas', () => {
     await cleanupMesa(mesaId);
   });
 });
+
+describe('useMesas', () => {
+  it('lanza error si se usa fuera de MesasProvider', () => {
+    expect(() => renderHook(() => useMesas())).toThrow(
+      'useMesas debe usarse dentro de MesasProvider'
+    );
+  });
+
+  it('provee mesas y loading correctamente dentro del provider', () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <MesasProvider>{children}</MesasProvider>
+    );
+    const { result } = renderHook(() => useMesas(), { wrapper });
+    expect(result.current).toHaveProperty('tables');
+    expect(result.current).toHaveProperty('loading');
+    expect(result.current).toHaveProperty('setTables');
+  });
+});
+
+/**
+ * Sugerencias adicionales:
+ * - Mockear onSnapshot para pruebas unitarias puras.
+ * - Probar cambios en el estado de mesas.
+ */

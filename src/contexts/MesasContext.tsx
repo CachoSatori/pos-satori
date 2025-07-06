@@ -3,20 +3,23 @@ import { db } from '../firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { Table } from '../types';
 
-// Interfaz del contexto para mesas
-interface MesasContextType {
+/**
+ * Tipos para el contexto de mesas.
+ */
+export interface MesasContextType {
   tables: Table[];
   setTables: React.Dispatch<React.SetStateAction<Table[]>>;
   loading: boolean;
 }
 
-// Crear el contexto
 const MesasContext = createContext<MesasContextType | undefined>(undefined);
 
-// Provider que obtiene las mesas desde Firestore y las expone como Table[]
+/**
+ * Provider para el contexto de mesas.
+ */
 export const MesasProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [tables, setTables] = useState<Table[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'tables'), (snapshot) => {
@@ -37,11 +40,19 @@ export const MesasProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 };
 
-// Hook para consumir el contexto de mesas
-export const useMesas = () => {
+/**
+ * Hook para consumir el contexto de mesas.
+ */
+export const useMesas = (): MesasContextType => {
   const context = useContext(MesasContext);
   if (!context) {
     throw new Error('useMesas debe usarse dentro de MesasProvider');
   }
   return context;
 };
+
+/**
+ * Sugerencias de pruebas (Vitest):
+ * - Verifica que useMesas lance error fuera del provider.
+ * - Verifica que MesasProvider provea mesas y loading correctamente.
+ */
