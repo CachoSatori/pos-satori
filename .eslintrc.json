@@ -1,0 +1,79 @@
+{
+  // ESLint config para React 19 + TypeScript estricto + Accesibilidad + Seguridad
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "react",
+    "@typescript-eslint",
+    "react-hooks",
+    "jsx-a11y",
+    "security"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/strict",
+    "plugin:jsx-a11y/recommended",
+    "plugin:security/recommended",
+    "prettier"
+  ],
+  "rules": {
+    // TypeScript estricto
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/strict-boolean-expressions": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+
+    // React
+    "react/prop-types": "off", // Usamos TypeScript para tipos
+    "react/react-in-jsx-scope": "off", // No necesario en React 17+
+    "react/jsx-boolean-value": ["error", "never"],
+    "react/self-closing-comp": "error",
+
+    // Hooks
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+
+    // Accesibilidad
+    "jsx-a11y/alt-text": "warn",
+    "jsx-a11y/anchor-is-valid": "warn",
+    "jsx-a11y/aria-role": "warn",
+    "jsx-a11y/no-autofocus": "warn",
+    "jsx-a11y/no-static-element-interactions": "warn",
+
+    // Seguridad
+    "security/detect-object-injection": "off", // Puede ser demasiado restrictivo para algunos patrones de React
+
+    // Estilo general
+    "semi": ["error", "always"],
+    "quotes": ["error", "single"],
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/",
+    "public/",
+    "firebase.json"
+  ]
+}
