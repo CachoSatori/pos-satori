@@ -12,6 +12,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { MesasProvider } from './contexts/MesasContext';
 import { ProductosProvider } from './contexts/ProductosContext';
 import { OrdersProvider } from './contexts/OrdersContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function Home() {
   const { t } = useTranslation();
@@ -76,63 +77,65 @@ function Home() {
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <MesasProvider>
-          <ProductosProvider>
-            <OrdersProvider>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                {/* Ruta protegida para administración de productos (solo admin) */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <AdminProductos />
-                    </ProtectedRoute>
-                  }
-                />
-                {/* Ruta protegida para administración de mesas (admin y waiter) */}
-                <Route
-                  path="/mesas"
-                  element={
-                    <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                      <AdminMesas />
-                    </ProtectedRoute>
-                  }
-                />
-                {/* Ruta protegida para administración de órdenes (admin y waiter) */}
-                <Route
-                  path="/orders"
-                  element={
-                    <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                      <AdminOrders />
-                    </ProtectedRoute>
-                  }
-                />
-                {/* Ruta protegida para dashboard (admin y waiter) */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                {/* Ruta protegida para reportes (admin y waiter) */}
-                <Route
-                  path="/reports"
-                  element={
-                    <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                      <Reports />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-            </OrdersProvider>
-          </ProductosProvider>
-        </MesasProvider>
-      </AuthProvider>
+      <ErrorBoundary>
+        <AuthProvider>
+          <MesasProvider>
+            <ProductosProvider>
+              <OrdersProvider>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  {/* Ruta protegida para administración de productos (solo admin) */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <AdminProductos />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Ruta protegida para administración de mesas (admin y waiter) */}
+                  <Route
+                    path="/mesas"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                        <AdminMesas />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Ruta protegida para administración de órdenes (admin y waiter) */}
+                  <Route
+                    path="/orders"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                        <AdminOrders />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Ruta protegida para dashboard (admin y waiter) */}
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Ruta protegida para reportes (admin y waiter) */}
+                  <Route
+                    path="/reports"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                        <Reports />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+              </OrdersProvider>
+            </ProductosProvider>
+          </MesasProvider>
+        </AuthProvider>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }
