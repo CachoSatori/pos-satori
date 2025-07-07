@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { MesasProvider, useMesas } from '../src/contexts/MesasContext';
 import { describe, it, expect } from 'vitest';
@@ -45,9 +46,8 @@ describe('useMesas', () => {
   });
 
   it('provee mesas y loading correctamente dentro del provider', () => {
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <MesasProvider>{children}</MesasProvider>
-    );
+    const wrapper = ({ children }: { children: React.ReactNode }) => 
+      React.createElement(MesasProvider, null, children);
     const { result } = renderHook(() => useMesas(), { wrapper });
     expect(result.current).toHaveProperty('tables');
     expect(result.current).toHaveProperty('loading');
