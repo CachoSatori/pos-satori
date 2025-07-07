@@ -1,7 +1,7 @@
 import React, { ReactNode, useEffect } from 'react';
-import { useOrders } from '../contexts/OrdersContext';
-import { useProductos } from '../contexts/ProductosContext';
-import { useMesas } from '../contexts/MesasContext';
+import { useOrders } from '../contexts/OrdersHook';
+import { useProductos } from '../contexts/ProductosHook';
+import { useMesas } from '../contexts/MesasHook';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { logError } from '../firebase';
@@ -35,26 +35,20 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
     if (orders.length === 0) {
       const error = new Error('OrdersContext vacío tras carga');
       logError({ error, context: 'OrdersContext', user: user.email });
-      if (import.meta.env.MODE === 'development') {
-        // eslint-disable-next-line no-console
-        window && window.console && window.console.warn?.('[DebugContext] OrdersContext vacío');
-      }
+      import.meta.env.MODE === 'development' &&
+        window?.console?.warn?.('[DebugContext] OrdersContext vacío');
     }
     if (products.length === 0) {
       const error = new Error('ProductosContext vacío tras carga');
       logError({ error, context: 'ProductosContext', user: user.email });
-      if (import.meta.env.MODE === 'development') {
-        // eslint-disable-next-line no-console
-        window && window.console && window.console.warn?.('[DebugContext] ProductosContext vacío');
-      }
+      import.meta.env.MODE === 'development' &&
+        window?.console?.warn?.('[DebugContext] ProductosContext vacío');
     }
     if (tables.length === 0) {
       const error = new Error('MesasContext vacío tras carga');
       logError({ error, context: 'MesasContext', user: user.email });
-      if (import.meta.env.MODE === 'development') {
-        // eslint-disable-next-line no-console
-        window && window.console && window.console.warn?.('[DebugContext] MesasContext vacío');
-      }
+      import.meta.env.MODE === 'development' &&
+        window?.console?.warn?.('[DebugContext] MesasContext vacío');
     }
   }, [orders, products, tables, loadingOrders, loadingProducts, loadingTables, user]);
 

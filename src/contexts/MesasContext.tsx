@@ -7,6 +7,8 @@ export const MesasProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Aquí deberías usar onSnapshot y setLoading(false) cuando termine la carga
+
   return (
     <MesasContext.Provider value={{ tables, setTables, loading }}>
       {children}

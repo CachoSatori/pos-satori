@@ -7,6 +7,8 @@ export const ProductosProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Aquí deberías usar onSnapshot y setLoading(false) cuando termine la carga
+
   return (
     <ProductosContext.Provider value={{ products, setProducts, loading }}>
       {children}

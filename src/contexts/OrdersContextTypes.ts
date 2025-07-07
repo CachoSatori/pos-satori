@@ -1,5 +1,7 @@
+import type { Order } from '../types/Order';
+
 export interface OrdersContextType {
-  orders: any[];
-  setOrders: (orders: any[]) => void;
+  orders: Order[];
+  setOrders: (orders: Order[]) => void;
   loading: boolean;
 }

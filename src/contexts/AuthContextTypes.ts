@@ -1,6 +1,8 @@
 import type { User as FirebaseUser } from 'firebase/auth';
 
-export interface UserWithRole extends FirebaseUser {
+export interface UserWithRole {
+  uid: string;
+  email?: string | null;
   role?: string;
 }
 

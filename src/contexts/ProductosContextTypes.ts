@@ -1,5 +1,7 @@
+import type { Product } from '../types/Product';
+
 export interface ProductosContextType {
-  products: any[];
-  setProducts: (products: any[]) => void;
+  products: Product[];
+  setProducts: (products: Product[]) => void;
   loading: boolean;
 }
