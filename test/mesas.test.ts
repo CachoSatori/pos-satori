@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { MesasProvider, useMesas } from '../src/contexts/MesasContext';
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { collection, addDoc, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../src/firebase';
 import type { Table } from '../src/types';

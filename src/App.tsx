@@ -1,6 +1,6 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import logo from './assets/LOGO.jpg';
 import Login from './modules/auth/Login';
 import ProtectedRoute from './modules/auth/ProtectedRoute';
 import AdminMesas from './modules/admin/AdminMesas';
@@ -8,86 +8,74 @@ import AdminProductos from './modules/admin/AdminProductos';
 import AdminOrders from './modules/admin/AdminOrders';
 import Dashboard from './modules/dashboard/Dashboard';
 import Reports from './modules/reports/Reports';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { MesasProvider } from './contexts/MesasContext';
 import { ProductosProvider } from './contexts/ProductosContext';
 import { OrdersProvider } from './contexts/OrdersContext';
 import ErrorBoundary from './components/ErrorBoundary';
 
 /**
- * Componente Home: landing page con navegación principal.
+ * Componente Home: redirige a /login.
+ */
+function HomeRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigate('/login', { replace: true });
+  }, [navigate]);
+  return null;
+}
+
+/**
+ * Componente Navigation: muestra navegación tras login.
  * Mobile-first, accesible, y alineado a colores Lavu.
  */
-function Home() {
+function Navigation() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
-    <div
-      className="bg-primary text-text min-h-screen p-8 flex flex-col items-center justify-center touch-manipulation"
-      style={{
-        backgroundImage: `url(${logo})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        position: 'relative',
-      }}
-      aria-label={t('Home')}
+    <nav
+      className="bg-primary text-text min-h-screen flex flex-col items-center justify-center gap-8"
+      aria-label={t('Main Navigation')}
+      style={{ background: '#1C2526' }}
     >
-      <div className="absolute inset-0 bg-primary bg-opacity-80 pointer-events-none" />
-      <div className="relative z-10 bg-secondary rounded-xl shadow-lg flex flex-col items-center p-12">
-        <h1 className="text-5xl font-bold mb-6 text-center drop-shadow">SatoriPOS - {t('Home')}</h1>
-        <p className="text-xl mb-10 text-center">{t('Project running')}</p>
-        <div className="flex flex-col md:flex-row gap-6 w-full justify-center">
-          <Link
-            to="/admin"
-            className="bg-accent text-text px-10 py-5 rounded-xl font-bold text-2xl shadow-lg hover:bg-accent/80 transition w-full md:w-auto text-center"
-            aria-label={t('Product Administration')}
-          >
-            {t('Product Administration')}
-          </Link>
-          <Link
-            to="/mesas"
-            className="bg-accent text-text px-10 py-5 rounded-xl font-bold text-2xl shadow-lg hover:bg-accent/80 transition w-full md:w-auto text-center"
-            aria-label={t('Table Administration')}
-          >
-            {t('Table Administration')}
-          </Link>
-          <Link
-            to="/orders"
-            className="bg-accent text-text px-10 py-5 rounded-xl font-bold text-2xl shadow-lg hover:bg-accent/80 transition w-full md:w-auto text-center"
-            aria-label={t('Order Administration')}
-          >
-            {t('Order Administration')}
-          </Link>
-          <Link
-            to="/dashboard"
-            className="bg-accent text-text px-10 py-5 rounded-xl font-bold text-2xl shadow-lg hover:bg-accent/80 transition w-full md:w-auto text-center"
-            aria-label={t('Dashboard')}
-          >
-            {t('Dashboard')}
-          </Link>
-          <Link
-            to="/reports"
-            className="bg-accent text-text px-10 py-5 rounded-xl font-bold text-2xl shadow-lg hover:bg-accent/80 transition w-full md:w-auto text-center"
-            aria-label={t('Sales Reports')}
-          >
-            {t('Sales Reports')}
-          </Link>
-          <Link
-            to="/login"
-            className="bg-accent text-text px-10 py-5 rounded-xl font-bold text-2xl shadow-lg hover:bg-accent/80 transition w-full md:w-auto text-center"
-            aria-label={t('Login')}
-          >
-            {t('Login')}
-          </Link>
-        </div>
+      <h1 className="text-4xl font-bold mb-8" style={{ color: '#00A6A6' }}>
+        SatoriPOS
+      </h1>
+      <div className="flex flex-col gap-6 w-full max-w-xs">
+        <NavButton to="/dashboard" label={t('Dashboard')} />
+        <NavButton to="/orders" label={t('Order Administration')} />
+        <NavButton to="/admin" label={t('Product Administration')} />
+        <NavButton to="/mesas" label={t('Table Administration')} />
+        <NavButton to="/reports" label={t('Sales Reports')} />
       </div>
-    </div>
+    </nav>
+  );
+}
+
+/**
+ * Botón de navegación reutilizable.
+ */
+function NavButton({ to, label }: { to: string; label: string }) {
+  return (
+    <a
+      href={to}
+      className="bg-accent text-text px-8 py-4 rounded-xl font-bold text-xl shadow-lg hover:bg-accent/80 transition text-center"
+      aria-label={label}
+      style={{ background: '#00A6A6', color: '#FFFFFF' }}
+    >
+      {label}
+    </a>
   );
 }
 
 /**
  * Componente principal App.
- * Elimina BrowserRouter (ahora solo en main.tsx).
+ * Elimina logo en Home, redirige a /login, y muestra navegación tras login.
  * Envuelve rutas con ErrorBoundary y Providers.
  * Compatible con mobile-first, accesibilidad y modularidad.
  */
@@ -99,9 +87,9 @@ function App() {
           <ProductosProvider>
             <OrdersProvider>
               <Routes>
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<HomeRedirect />} />
                 <Route path="/login" element={<Login />} />
-                {/* Ruta protegida para administración de productos (solo admin) */}
+                <Route path="/navigation" element={<Navigation />} />
                 <Route
                   path="/admin"
                   element={
@@ -110,7 +98,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* Ruta protegida para administración de mesas (admin y waiter) */}
                 <Route
                   path="/mesas"
                   element={
@@ -119,7 +106,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* Ruta protegida para administración de órdenes (admin y waiter) */}
                 <Route
                   path="/orders"
                   element={
@@ -128,7 +114,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* Ruta protegida para dashboard (admin y waiter) */}
                 <Route
                   path="/dashboard"
                   element={
@@ -137,7 +122,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* Ruta protegida para reportes (admin y waiter) */}
                 <Route
                   path="/reports"
                   element={
@@ -159,9 +143,9 @@ export default App;
 
 /**
  * Sugerencias de pruebas unitarias (Vitest):
- * 1. Renderiza Home y rutas protegidas correctamente.
- * 2. ErrorBoundary captura errores de contexto (ej: useMesas fuera de provider).
- * 3. Navegación accesible y mobile-first (<3 clics).
- * 4. Los textos y notificaciones se muestran traducidos según idioma.
- * 5. El diseño respeta los colores Lavu y es accesible (ARIA).
+ * - Renderiza Navigation solo si el usuario está autenticado.
+ * - Redirige correctamente de Home a /login.
+ * - Navegación accesible y mobile-first (<3 clics).
+ * - ErrorBoundary captura errores de contexto.
+ * - Los textos y notificaciones se muestran traducidos según idioma.
  */
