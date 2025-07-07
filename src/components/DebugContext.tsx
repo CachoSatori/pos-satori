@@ -35,20 +35,17 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
     if (orders.length === 0) {
       const error = new Error('OrdersContext vacío tras carga');
       logError({ error, context: 'OrdersContext', user: user.email });
-      import.meta.env.MODE === 'development' &&
-        window?.console?.warn?.('[DebugContext] OrdersContext vacío');
+      if (import.meta.env.MODE === 'development') window.console?.warn?.('[DebugContext] OrdersContext vacío');
     }
     if (products.length === 0) {
       const error = new Error('ProductosContext vacío tras carga');
       logError({ error, context: 'ProductosContext', user: user.email });
-      import.meta.env.MODE === 'development' &&
-        window?.console?.warn?.('[DebugContext] ProductosContext vacío');
+      if (import.meta.env.MODE === 'development') window.console?.warn?.('[DebugContext] ProductosContext vacío');
     }
     if (tables.length === 0) {
       const error = new Error('MesasContext vacío tras carga');
       logError({ error, context: 'MesasContext', user: user.email });
-      import.meta.env.MODE === 'development' &&
-        window?.console?.warn?.('[DebugContext] MesasContext vacío');
+      if (import.meta.env.MODE === 'development') window.console?.warn?.('[DebugContext] MesasContext vacío');
     }
   }, [orders, products, tables, loadingOrders, loadingProducts, loadingTables, user]);
 

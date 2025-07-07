@@ -1,13 +1,22 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { onSnapshot, collection } from 'firebase/firestore';
+import { db } from '../firebase';
 import type { OrdersContextType } from './OrdersContextTypes';
+import type { Order } from '../types/Order';
 
 export const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
 
 export const OrdersProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Aquí deberías usar onSnapshot y setLoading(false) cuando termine la carga
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'orders'), (snapshot) => {
+      setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order)));
+      setLoading(false);
+    }, () => setLoading(false));
+    return () => unsub();
+  }, []);
 
   return (
     <OrdersContext.Provider value={{ orders, setOrders, loading }}>

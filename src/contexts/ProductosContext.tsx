@@ -1,13 +1,22 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { onSnapshot, collection } from 'firebase/firestore';
+import { db } from '../firebase';
 import type { ProductosContextType } from './ProductosContextTypes';
+import type { Product } from '../types/Product';
 
 export const ProductosContext = createContext<ProductosContextType | undefined>(undefined);
 
 export const ProductosProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Aquí deberías usar onSnapshot y setLoading(false) cuando termine la carga
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'products'), (snapshot) => {
+      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      setLoading(false);
+    }, () => setLoading(false));
+    return () => unsub();
+  }, []);
 
   return (
     <ProductosContext.Provider value={{ products, setProducts, loading }}>
