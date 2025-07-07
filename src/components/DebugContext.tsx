@@ -25,12 +25,10 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
   const { user } = useAuth();
   const { t } = useTranslation();
 
-  // Monitoreo de errores y estados
   useEffect(() => {
     if (!user) return;
     if (loadingOrders || loadingProducts || loadingTables) return;
 
-    // Ejemplo: detectar si algún contexto está vacío después de cargar
     if (orders.length === 0) {
       const error = new Error('OrdersContext vacío tras carga');
       logError({ error, context: 'OrdersContext', user: user.email });
@@ -66,7 +64,10 @@ export const DebugUI: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
 
-  if (!user || user.role !== 'admin') {
+  // Evitar warning de no-unused-vars para t
+  void t;
+
+  if (!user || (user as any).role !== 'admin') {
     return (
       <div className="flex items-center justify-center min-h-screen" aria-live="polite">
         <span className="text-accent text-xl">{t('Access denied')}</span>
