@@ -1,16 +1,22 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
     "moduleResolution": "Node",
-    "jsx": "react-jsx",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "noEmit": true,
-    "allowImportingTsExtensions": true
+    "jsx": "react-jsx",
+    "types": ["vitest/globals", "vite/client"]
   },
-  "include": ["src", "test"],
+  "include": ["src", "test", "vitest.config.ts"],
   "exclude": ["node_modules"]
 }
