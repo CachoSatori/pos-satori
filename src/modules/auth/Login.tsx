@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import type { User } from 'firebase/auth';
 
 /**
  * Componente de Login.
@@ -24,7 +23,7 @@ const Login: React.FC = () => {
     setError(null);
     try {
       await login(email, password);
-    } catch (err) {
+    } catch {
       setError(t('Login failed'));
     }
   };

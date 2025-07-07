@@ -1,24 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User as FirebaseUser, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-
-/**
- * Tipo extendido de usuario con rol.
- */
-export interface UserWithRole extends FirebaseUser {
-  role?: string;
-}
-
-/**
- * Tipos para el contexto de autenticación.
- */
-export interface AuthContextType {
-  user: UserWithRole | null;
-  loading: boolean;
-  role?: string;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-}
+import type { AuthContextType, UserWithRole } from './AuthContextTypes';
 
 /**
  * Contexto de autenticación.
@@ -36,7 +19,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Aquí podrías obtener el rol desde Firestore si lo necesitas
         setUser(firebaseUser as UserWithRole);
         setRole((firebaseUser as UserWithRole).role);
       } else {
