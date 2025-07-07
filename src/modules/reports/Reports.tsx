@@ -25,8 +25,8 @@ function formatDate(ts: Timestamp | Date | string, locale: string): string {
 }
 
 /**
- * Componente Reports.
- * Accesible, mobile-first y alineado a SDD.
+ * Componente de reportes.
+ * Muestra reportes de ventas, mesas y productos.
  */
 const Reports: React.FC = () => {
   useAuth();

@@ -37,7 +37,7 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
       logError({ error, context: 'OrdersContext', user: user.email });
       if (import.meta.env.MODE === 'development') {
         // eslint-disable-next-line no-console
-        console.warn('[DebugContext] OrdersContext vacío');
+        window && window.console && window.console.warn?.('[DebugContext] OrdersContext vacío');
       }
     }
     if (products.length === 0) {
@@ -45,7 +45,7 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
       logError({ error, context: 'ProductosContext', user: user.email });
       if (import.meta.env.MODE === 'development') {
         // eslint-disable-next-line no-console
-        console.warn('[DebugContext] ProductosContext vacío');
+        window && window.console && window.console.warn?.('[DebugContext] ProductosContext vacío');
       }
     }
     if (tables.length === 0) {
@@ -53,7 +53,7 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
       logError({ error, context: 'MesasContext', user: user.email });
       if (import.meta.env.MODE === 'development') {
         // eslint-disable-next-line no-console
-        console.warn('[DebugContext] MesasContext vacío');
+        window && window.console && window.console.warn?.('[DebugContext] MesasContext vacío');
       }
     }
   }, [orders, products, tables, loadingOrders, loadingProducts, loadingTables, user]);
