@@ -1,21 +1,11 @@
 /// <reference types="vitest/globals" />
-import React from 'react';
 import { renderHook } from '@testing-library/react';
+import React from 'react';
 import { MesasProvider, useMesas } from '../src/contexts/MesasContext';
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { collection, addDoc, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../src/firebase';
 import type { Table } from '../src/types';
-
-// Asegura entorno jsdom para pruebas de hooks React
-beforeAll(() => {
-  if (typeof window === 'undefined') {
-    // @ts-expect-error
-    globalThis.window = {};
-    // @ts-expect-error
-    globalThis.document = { createElement: () => ({}) };
-  }
-});
 
 // Utilidad para limpiar después de la prueba
 async function cleanupMesa(id: string) {
@@ -57,9 +47,9 @@ describe('useMesas', () => {
   });
 
   it('provee mesas y loading correctamente dentro del provider', () => {
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <MesasProvider>{children}</MesasProvider>
-    );
+    // Usar React.createElement para evitar problemas de JSX/TS1161
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(MesasProvider, null, children);
     const { result } = renderHook(() => useMesas(), { wrapper });
     expect(result.current).toHaveProperty('tables');
     expect(result.current).toHaveProperty('loading');

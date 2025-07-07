@@ -16,7 +16,7 @@ interface DebugContextProviderProps {
 /**
  * Componente DebugContextProvider.
  * Monitorea y muestra el estado de OrdersContext, ProductosContext y MesasContext.
- * Registra errores en consola y Firestore. Accesible y mobile-first.
+ * Registra errores en consola solo en desarrollo y en Firestore. Accesible y mobile-first.
  */
 export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ children }) => {
   const { orders, loading: loadingOrders } = useOrders();
@@ -35,7 +35,7 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
     if (orders.length === 0) {
       const error = new Error('OrdersContext vacío tras carga');
       logError({ error, context: 'OrdersContext', user: user.email });
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.MODE === 'development') {
         // eslint-disable-next-line no-console
         console.warn('[DebugContext] OrdersContext vacío');
       }
@@ -43,7 +43,7 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
     if (products.length === 0) {
       const error = new Error('ProductosContext vacío tras carga');
       logError({ error, context: 'ProductosContext', user: user.email });
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.MODE === 'development') {
         // eslint-disable-next-line no-console
         console.warn('[DebugContext] ProductosContext vacío');
       }
@@ -51,7 +51,7 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
     if (tables.length === 0) {
       const error = new Error('MesasContext vacío tras carga');
       logError({ error, context: 'MesasContext', user: user.email });
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.MODE === 'development') {
         // eslint-disable-next-line no-console
         console.warn('[DebugContext] MesasContext vacío');
       }
@@ -76,10 +76,11 @@ export const DebugUI: React.FC = () => {
   // Evitar warning de no-unused-vars para t
   void t;
 
-  // Evitar no-explicit-any: se recomienda definir un tipo User con role
-  const isAdmin = user && typeof (user as { role?: string }).role === 'string'
-    ? (user as { role?: string }).role === 'admin'
-    : false;
+  // Definir tipo seguro para user con role
+  const isAdmin =
+    user && typeof (user as { role?: string }).role === 'string'
+      ? (user as { role?: string }).role === 'admin'
+      : false;
 
   if (!isAdmin) {
     return (
