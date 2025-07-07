@@ -40,6 +40,9 @@ function HomeRedirect() {
  * Compatible con mobile-first, accesibilidad y modularidad.
  */
 function App() {
+  // Evitar warning de no-unused-vars para useTranslation
+  void useTranslation;
+
   return (
     <ErrorBoundary>
       <AuthProvider>

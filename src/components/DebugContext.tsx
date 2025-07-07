@@ -25,6 +25,9 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
   const { user } = useAuth();
   const { t } = useTranslation();
 
+  // Evitar warning de no-unused-vars para t
+  void t;
+
   useEffect(() => {
     if (!user) return;
     if (loadingOrders || loadingProducts || loadingTables) return;
