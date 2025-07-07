@@ -1,5 +1,6 @@
+import { auth } from './firebase'; // sin extensión .ts
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from './firebase.ts';
+import { db } from './firebase';
 
 // Script para crear/corregir usuario admin en Firestore
 async function fixUser(): Promise<void> {
@@ -13,6 +14,13 @@ async function fixUser(): Promise<void> {
     console.error('Error al corregir usuario:', error);
     process.exit(1);
   }
+}
+
+/**
+ * Utilidad para obtener el usuario actual autenticado.
+ */
+export function getCurrentUser() {
+  return auth.currentUser;
 }
 
 fixUser();

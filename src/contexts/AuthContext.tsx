@@ -15,6 +15,7 @@ export interface UserWithRole extends FirebaseUser {
 export interface AuthContextType {
   user: UserWithRole | null;
   loading: boolean;
+  role?: string;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -30,14 +31,17 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserWithRole | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [role, setRole] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // Aquí podrías obtener el rol desde Firestore si lo necesitas
         setUser(firebaseUser as UserWithRole);
+        setRole((firebaseUser as UserWithRole).role);
       } else {
         setUser(null);
+        setRole(undefined);
       }
       setLoading(false);
     });
@@ -57,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, role, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -77,5 +81,5 @@ export const useAuth = (): AuthContextType => {
 /**
  * Sugerencias de pruebas (Vitest):
  * - Verifica que useAuth lance error fuera del provider.
- * - Verifica que AuthProvider provea user, loading, login y logout correctamente.
+ * - Verifica que AuthProvider provea user, loading, login, logout y role correctamente.
  */

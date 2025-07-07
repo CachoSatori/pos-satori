@@ -1,53 +1,40 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import type { User } from 'firebase/auth';
 
 /**
- * Componente de login.
- * Accesible, mobile-first y alineado a SDD.
+ * Componente de Login.
+ * Permite autenticación de usuario y muestra feedback.
  */
 const Login: React.FC = () => {
-  const { t } = useTranslation();
   const { login, loading, user } = useAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const { t } = useTranslation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.name === 'email') {
-      setEmail(e.target.value);
-    } else {
-      setPassword(e.target.value);
-    }
+    if (e.target.name === 'email') setEmail(e.target.value);
+    if (e.target.name === 'password') setPassword(e.target.value);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     try {
       await login(email, password);
-      navigate('/admin');
-    } catch (error: any) {
-      // Firebase Auth error codes
-      if (error.code === 'auth/user-not-found') {
-        toast.error('Usuario no encontrado.');
-      } else if (error.code === 'auth/wrong-password') {
-        toast.error('Contraseña incorrecta.');
-      } else if (error.code === 'auth/too-many-requests' || error.code === 403) {
-        toast.error('Acceso bloqueado temporalmente. Intenta más tarde.');
-      } else if (error.code === 'auth/network-request-failed') {
-        toast.error('Error de red. Verifica tu conexión.');
-      } else {
-        toast.error('Error al iniciar sesión. Verifica tus credenciales.');
-      }
+    } catch (err) {
+      setError(t('Login failed'));
     }
   };
 
   if (user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="text-accent text-xl">{t('Already logged in')}</span>
+      <div className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#FFFFFF]">
+        <div className="p-8 rounded-xl bg-[#00A6A6] text-[#1C2526] font-bold text-xl">
+          {t('Already logged in')}
+        </div>
       </div>
     );
   }
@@ -64,8 +51,6 @@ const Login: React.FC = () => {
         className="bg-[#1C2526] rounded-2xl shadow-2xl p-10 w-full max-w-md flex flex-col gap-8 border-4 border-[#00A6A6]"
         aria-label={t('Login Form')}
       >
-        <h1 className="text-4xl font-extrabold mb-2 text-center text-[#00A6A6] drop-shadow">SatoriPOS</h1>
-        <h2 className="text-2xl font-bold mb-6 text-center text-[#FFFFFF]">{t('Login')}</h2>
         <input
           type="email"
           name="email"
@@ -92,8 +77,9 @@ const Login: React.FC = () => {
           aria-label={t('Login')}
           disabled={loading}
         >
-          {loading ? 'Ingresando...' : t('Login')}
+          {loading ? t('Logging in...') : t('Login')}
         </button>
+        {error && <div className="text-red-400 text-sm">{error}</div>}
       </form>
     </div>
   );
@@ -107,10 +93,3 @@ export default Login;
  * - Renderiza mensaje si ya está logueado.
  * - Accesibilidad: aria-labels presentes.
  */
-
-export interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  // ...otros métodos y propiedades
-}

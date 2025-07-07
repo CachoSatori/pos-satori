@@ -1,21 +1,36 @@
-import { ReactNode } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/useAuth';
+import { useAuth, AuthContextType } from '../../contexts/AuthContext';
 
+/**
+ * Props para ProtectedRoute.
+ */
 interface ProtectedRouteProps {
-  allowedRoles: string[];
-  children: ReactNode;
+  allowedRoles?: string[];
+  children: React.ReactNode;
 }
 
+/**
+ * Componente ProtectedRoute.
+ * Redirige a /login si no autenticado o no tiene rol permitido.
+ */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children }) => {
-  const { user, role, loading } = useAuth();
+  const { user, loading, role } = useAuth() as AuthContextType;
 
   if (loading) {
-    return <div className="text-text">Cargando...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#00A6A6]">
+        <span className="text-xl font-bold">Cargando...</span>
+      </div>
+    );
   }
 
-  if (!user || !role || !allowedRoles.includes(role)) {
+  if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(role ?? user.role ?? '')) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;

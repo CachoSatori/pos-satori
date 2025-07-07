@@ -1,32 +1,38 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth, AuthContextType } from './contexts/AuthContext';
 
+/**
+ * Props para ProtectedRoute.
+ */
 interface ProtectedRouteProps {
+  allowedRoles?: string[];
   children: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, role, loading } = useAuth();
-
-  console.log('ProtectedRoute check:', { user: !!user, role, loading });
+/**
+ * Componente ProtectedRoute.
+ * Redirige a /login si no autenticado o no tiene rol permitido.
+ */
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children }) => {
+  const { user, loading, role } = useAuth() as AuthContextType;
 
   if (loading) {
-    console.log('ProtectedRoute: Loading authentication state');
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#00A6A6]">
+        <span className="text-xl font-bold">Cargando...</span>
+      </div>
+    );
   }
 
   if (!user) {
-    console.log('ProtectedRoute: No user, redirecting to /login');
     return <Navigate to="/login" replace />;
   }
 
-  if (role !== 'admin') {
-    console.log('ProtectedRoute: User is not admin, redirecting to /login');
-    return <Navigate to="/login" replace />;
+  if (allowedRoles && !allowedRoles.includes(role ?? user.role ?? '')) {
+    return <Navigate to="/dashboard" replace />;
   }
 
-  console.log('ProtectedRoute: Access granted');
   return <>{children}</>;
 };
 
