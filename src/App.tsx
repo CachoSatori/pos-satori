@@ -8,7 +8,7 @@ import AdminProductos from './modules/admin/AdminProductos';
 import AdminOrders from './modules/admin/AdminOrders';
 import Dashboard from './modules/dashboard/Dashboard';
 import Reports from './modules/reports/Reports';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { MesasProvider } from './contexts/MesasContext';
 import { ProductosProvider } from './contexts/ProductosContext';
 import { OrdersProvider } from './contexts/OrdersContext';
@@ -19,7 +19,8 @@ import { DebugContextProvider, DebugUI } from './components/DebugContext';
  * Componente Home: redirige a /login si no está autenticado, o a /dashboard si sí.
  */
 function HomeRedirect() {
-  const { user, loading } = useAuth();
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { user, loading } = require('./contexts/AuthContext').useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
