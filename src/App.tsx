@@ -50,60 +50,62 @@ function App() {
           <ProductosProvider>
             <OrdersProvider>
               <DebugContextProvider>
-                <Routes>
-                  <Route path="/" element={<HomeRedirect />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route
-                    path="/admin"
-                    element={
-                      <ProtectedRoute allowedRoles={['admin']}>
-                        <AdminProductos />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/mesas"
-                    element={
-                      <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                        <AdminMesas />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/orders"
-                    element={
-                      <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                        <AdminOrders />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/reports"
-                    element={
-                      <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                        <Reports />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/debug"
-                    element={
-                      <ProtectedRoute allowedRoles={['admin']}>
-                        <DebugUI />
-                      </ProtectedRoute>
-                    }
-                  />
-                  {/* Fallback */}
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                <div className="min-h-screen bg-[#1C2526] text-[#FFFFFF]">
+                  <Routes>
+                    <Route path="/" element={<HomeRedirect />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute allowedRoles={['admin']}>
+                          <AdminProductos />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/mesas"
+                      element={
+                        <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                          <AdminMesas />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/orders"
+                      element={
+                        <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                          <AdminOrders />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/reports"
+                      element={
+                        <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                          <Reports />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/debug"
+                      element={
+                        <ProtectedRoute allowedRoles={['admin']}>
+                          <DebugUI />
+                        </ProtectedRoute>
+                      }
+                    />
+                    {/* Fallback */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </div>
               </DebugContextProvider>
             </OrdersProvider>
           </ProductosProvider>

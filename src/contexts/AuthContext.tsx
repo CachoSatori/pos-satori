@@ -1,35 +1,63 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { User as FirebaseUser, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+
+/**
+ * Tipo extendido de usuario con rol.
+ */
+export interface UserWithRole extends FirebaseUser {
+  role?: string;
+}
 
 /**
  * Tipos para el contexto de autenticación.
  */
 export interface AuthContextType {
-  user: User | null;
+  user: UserWithRole | null;
   loading: boolean;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+/**
+ * Contexto de autenticación.
+ */
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
  * Provider para el contexto de autenticación.
  */
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserWithRole | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Aquí podrías obtener el rol desde Firestore si lo necesitas
+        setUser(firebaseUser as UserWithRole);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
+  const login = async (email: string, password: string) => {
+    setLoading(true);
+    await signInWithEmailAndPassword(auth, email, password);
+    setLoading(false);
+  };
+
+  const logout = async () => {
+    setLoading(true);
+    await signOut(auth);
+    setLoading(false);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, setUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -49,5 +77,5 @@ export const useAuth = (): AuthContextType => {
 /**
  * Sugerencias de pruebas (Vitest):
  * - Verifica que useAuth lance error fuera del provider.
- * - Verifica que AuthProvider provea user y loading correctamente.
+ * - Verifica que AuthProvider provea user, loading, login y logout correctamente.
  */

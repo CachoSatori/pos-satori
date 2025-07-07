@@ -35,20 +35,26 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
     if (orders.length === 0) {
       const error = new Error('OrdersContext vacío tras carga');
       logError({ error, context: 'OrdersContext', user: user.email });
-      // eslint-disable-next-line no-console
-      console.warn('[DebugContext] OrdersContext vacío');
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn('[DebugContext] OrdersContext vacío');
+      }
     }
     if (products.length === 0) {
       const error = new Error('ProductosContext vacío tras carga');
       logError({ error, context: 'ProductosContext', user: user.email });
-      // eslint-disable-next-line no-console
-      console.warn('[DebugContext] ProductosContext vacío');
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn('[DebugContext] ProductosContext vacío');
+      }
     }
     if (tables.length === 0) {
       const error = new Error('MesasContext vacío tras carga');
       logError({ error, context: 'MesasContext', user: user.email });
-      // eslint-disable-next-line no-console
-      console.warn('[DebugContext] MesasContext vacío');
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn('[DebugContext] MesasContext vacío');
+      }
     }
   }, [orders, products, tables, loadingOrders, loadingProducts, loadingTables, user]);
 
@@ -70,7 +76,12 @@ export const DebugUI: React.FC = () => {
   // Evitar warning de no-unused-vars para t
   void t;
 
-  if (!user || (user as any).role !== 'admin') {
+  // Evitar no-explicit-any: se recomienda definir un tipo User con role
+  const isAdmin = user && typeof (user as { role?: string }).role === 'string'
+    ? (user as { role?: string }).role === 'admin'
+    : false;
+
+  if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-screen" aria-live="polite">
         <span className="text-accent text-xl">{t('Access denied')}</span>
