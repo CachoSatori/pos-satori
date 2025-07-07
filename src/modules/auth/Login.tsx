@@ -107,3 +107,10 @@ export default Login;
  * - Renderiza mensaje si ya está logueado.
  * - Accesibilidad: aria-labels presentes.
  */
+
+export interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  // ...otros métodos y propiedades
+}
