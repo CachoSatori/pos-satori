@@ -1,5 +1,5 @@
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Login from './modules/auth/Login';
 import ProtectedRoute from './modules/auth/ProtectedRoute';
@@ -8,7 +8,7 @@ import AdminProductos from './modules/admin/AdminProductos';
 import AdminOrders from './modules/admin/AdminOrders';
 import Dashboard from './modules/dashboard/Dashboard';
 import Reports from './modules/reports/Reports';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { MesasProvider } from './contexts/MesasContext';
 import { ProductosProvider } from './contexts/ProductosContext';
 import { OrdersProvider } from './contexts/OrdersContext';
@@ -19,8 +19,7 @@ import { DebugContextProvider, DebugUI } from './components/DebugContext';
  * Componente Home: redirige a /login si no está autenticado, o a /dashboard si sí.
  */
 function HomeRedirect() {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { user, loading } = require('./contexts/AuthContext').useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
