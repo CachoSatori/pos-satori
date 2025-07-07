@@ -5,7 +5,7 @@ import { useMesas } from '../../contexts/MesasContext';
 import { useAuth } from '../../contexts/useAuth';
 import { useTranslation } from 'react-i18next';
 import ProtectedRoute from '../auth/ProtectedRoute';
-import type { Order, OrderItem, Product, Table } from '../../types';
+import type { Order } from '../../types';
 import type { Timestamp } from 'firebase/firestore';
 
 const LAVU_BG = '#1C2526';
@@ -47,8 +47,9 @@ const Reports: React.FC = () => {
     completedOrders.forEach(order => {
       const dateStr = formatDate(order.createdAt, i18n.language);
       let total = 0;
-      order.items.forEach(item => {
-        const product = products.find(p => p.id === (item as any).productId || (item as any).product?.id);
+      order.items.forEach((item) => {
+        // item: { productId: string, quantity: number }
+        const product = products.find(p => p.id === item.productId);
         total += (product?.price ?? 0) * item.quantity;
       });
       if (!map.has(dateStr)) {
@@ -65,8 +66,8 @@ const Reports: React.FC = () => {
   const salesByCategory = useMemo(() => {
     const map = new Map<string, { total: number; count: number }>();
     completedOrders.forEach(order => {
-      order.items.forEach(item => {
-        const product = products.find(p => p.id === (item as any).productId || (item as any).product?.id);
+      order.items.forEach((item) => {
+        const product = products.find(p => p.id === item.productId);
         if (!product) return;
         const cat = product.category || t('No data');
         if (!map.has(cat)) {
@@ -87,8 +88,8 @@ const Reports: React.FC = () => {
   const salesByProduct = useMemo(() => {
     const map = new Map<string, { name: string; total: number; count: number }>();
     completedOrders.forEach(order => {
-      order.items.forEach(item => {
-        const product = products.find(p => p.id === (item as any).productId || (item as any).product?.id);
+      order.items.forEach((item) => {
+        const product = products.find(p => p.id === item.productId);
         if (!product) return;
         if (!map.has(product.id)) {
           map.set(product.id, { name: product.name, total: product.price * item.quantity, count: item.quantity });
