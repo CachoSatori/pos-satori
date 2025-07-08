@@ -1,7 +1,8 @@
 /// <reference types="vitest/globals" />
 import { renderHook } from '@testing-library/react';
 import React from 'react';
-import { MesasProvider, useMesas } from '../src/contexts/MesasContext';
+import { MesasProvider } from '../src/contexts/MesasContext';
+import { useMesas } from '../src/contexts/MesasHook';
 import { describe, it, expect } from 'vitest';
 import { collection, addDoc, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../src/firebase';

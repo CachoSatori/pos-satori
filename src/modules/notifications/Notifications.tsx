@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useOrders } from '../../contexts/OrdersContext';
-import { useAuth } from '../../contexts/useAuth';
+import { useOrders } from '../../contexts/OrdersHook';
+import { useAuth } from '../../contexts/AuthHook';
 import { toast } from 'react-toastify';
 import { requestFCMToken, onForegroundMessage, logError } from '../../firebase';
 import type { Order } from '../../types';
 import type { Timestamp } from 'firebase/firestore';
 
+/**
+ * Componente de notificaciones.
+ * Muestra notificaciones push y locales para nuevas órdenes.
+ */
 const Notifications: React.FC = () => {
   const { orders } = useOrders();
   const { user } = useAuth();
@@ -24,9 +28,9 @@ const Notifications: React.FC = () => {
         .catch((error: unknown) => {
           toast.error('No se pudo activar notificaciones');
           if (error instanceof Error) {
-            logError(error);
+            logError({ error, context: 'Notifications' });
           } else {
-            logError(new Error(JSON.stringify(error)));
+            logError({ error: new Error(JSON.stringify(error)), context: 'Notifications' });
           }
         });
 
@@ -68,7 +72,6 @@ const Notifications: React.FC = () => {
       },
       ...prev.filter(n => n.id !== latestOrder.id),
     ]);
-    // eslint-disable-next-line
   }, [orders.length]);
 
   return (
@@ -96,3 +99,10 @@ const Notifications: React.FC = () => {
 };
 
 export default Notifications;
+
+/**
+ * Sugerencias de pruebas (Vitest):
+ * - Renderiza notificaciones correctamente.
+ * - Muestra mensaje si no hay notificaciones.
+ * - Activa notificaciones push al iniciar sesión.
+ */
