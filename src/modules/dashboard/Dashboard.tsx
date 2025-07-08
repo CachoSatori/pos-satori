@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useProductos } from '../../contexts/ProductosContext';
-import { useMesas } from '../../contexts/MesasContext';
-import { useOrders } from '../../contexts/OrdersContext';
-import { useAuth } from '../../contexts/useAuth';
+import { useProductos } from '../../contexts/ProductosHook';
+import { useMesas } from '../../contexts/MesasHook';
+import { useOrders } from '../../contexts/OrdersHook';
+import { useAuth } from '../../contexts/AuthHook';
 import ProtectedRoute from '../auth/ProtectedRoute';
 import { Pie, Bar } from 'react-chartjs-2';
 import {
@@ -16,12 +16,16 @@ import {
   BarElement,
   Title,
 } from 'chart.js';
-import type { Order, OrderItem, Product, Table } from '../../types';
+import type { Order, OrderItem } from '../../types';
 import type { Timestamp } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
+/**
+ * Componente de dashboard.
+ * Muestra métricas de productos, mesas y órdenes.
+ */
 const Dashboard: React.FC = () => {
   useAuth();
   const { products, loading: loadingProducts } = useProductos();
@@ -38,8 +42,7 @@ const Dashboard: React.FC = () => {
       sum +
       order.items.reduce(
         (orderSum: number, item: OrderItem) => {
-          // Buscar el producto por ID
-          const product = products.find(p => p.id === (item as any).productId || (item as any).product?.id);
+          const product = products.find(p => p.id === item.productId);
           return orderSum + ((product?.price ?? 0) * item.quantity);
         },
         0
@@ -90,7 +93,7 @@ const Dashboard: React.FC = () => {
       if (typeof order.createdAt === 'object' && 'toDate' in order.createdAt) {
         orderDate = (order.createdAt as Timestamp).toDate();
       } else {
-        orderDate = new Date(order.createdAt as any);
+        orderDate = new Date(order.createdAt);
       }
       return orderDate.toISOString().slice(0, 10) === dayStr;
     });
@@ -99,7 +102,7 @@ const Dashboard: React.FC = () => {
         sum +
         order.items.reduce(
           (orderSum: number, item: OrderItem) => {
-            const product = products.find(p => p.id === (item as any).productId || (item as any).product?.id);
+            const product = products.find(p => p.id === item.productId);
             return orderSum + ((product?.price ?? 0) * item.quantity);
           },
           0

@@ -17,29 +17,57 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [role, setRole] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser as UserWithRole);
-        setRole((firebaseUser as UserWithRole).role);
-      } else {
-        setUser(null);
-        setRole(undefined);
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (firebaseUser) => {
+        try {
+          if (firebaseUser) {
+            setUser(firebaseUser as UserWithRole);
+            setRole((firebaseUser as UserWithRole).role);
+          } else {
+            setUser(null);
+            setRole(undefined);
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('Error en onAuthStateChanged:', error);
+        } finally {
+          setLoading(false);
+        }
+      },
+      (error) => {
+        // eslint-disable-next-line no-console
+        console.error('Error en onAuthStateChanged:', error);
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    );
     return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
-    await signInWithEmailAndPassword(auth, email, password);
-    setLoading(false);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error en login:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = async () => {
     setLoading(true);
-    await signOut(auth);
-    setLoading(false);
+    try {
+      await signOut(auth);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error en logout:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

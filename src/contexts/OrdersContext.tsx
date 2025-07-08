@@ -2,19 +2,33 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { onSnapshot, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { OrdersContextType } from './OrdersContextTypes';
-import type { Order } from '../types/Order';
+import type { Order } from '../types';
 
+/**
+ * Contexto de órdenes.
+ */
 export const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
 
+/**
+ * Provider para el contexto de órdenes.
+ */
 export const OrdersProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'orders'), (snapshot) => {
-      setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order)));
-      setLoading(false);
-    }, () => setLoading(false));
+    const unsub = onSnapshot(
+      collection(db, 'orders'),
+      (snapshot) => {
+        setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order)));
+        setLoading(false);
+      },
+      (error) => {
+        // eslint-disable-next-line no-console
+        console.error('Error en onSnapshot para orders:', error);
+        setLoading(false);
+      }
+    );
     return () => unsub();
   }, []);
 

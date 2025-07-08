@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
-import { useOrders } from '../../contexts/OrdersContext';
-import { useProductos } from '../../contexts/ProductosContext';
-import { useMesas } from '../../contexts/MesasContext';
-import { useAuth } from '../../contexts/useAuth';
+import { useOrders } from '../../contexts/OrdersHook';
+import { useProductos } from '../../contexts/ProductosHook';
+import { useMesas } from '../../contexts/MesasHook';
+import { useAuth } from '../../contexts/AuthHook';
 import { useTranslation } from 'react-i18next';
 import ProtectedRoute from '../auth/ProtectedRoute';
-import type { Order } from '../../types';
+import type { Order, OrderItem } from '../../types';
 import type { Timestamp } from 'firebase/firestore';
 
 const LAVU_BG = '#1C2526';
@@ -33,7 +33,7 @@ const Reports: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { orders, loading: loadingOrders } = useOrders();
   const { products, loading: loadingProducts } = useProductos();
-  const { tables, loading: loadingTables } = useMesas();
+  const { loading: loadingTables } = useMesas();
 
   // Filtrar solo órdenes completadas
   const completedOrders = useMemo(
@@ -47,8 +47,7 @@ const Reports: React.FC = () => {
     completedOrders.forEach(order => {
       const dateStr = formatDate(order.createdAt, i18n.language);
       let total = 0;
-      order.items.forEach((item) => {
-        // item: { productId: string, quantity: number }
+      order.items.forEach((item: OrderItem) => {
         const product = products.find(p => p.id === item.productId);
         total += (product?.price ?? 0) * item.quantity;
       });
@@ -66,7 +65,7 @@ const Reports: React.FC = () => {
   const salesByCategory = useMemo(() => {
     const map = new Map<string, { total: number; count: number }>();
     completedOrders.forEach(order => {
-      order.items.forEach((item) => {
+      order.items.forEach((item: OrderItem) => {
         const product = products.find(p => p.id === item.productId);
         if (!product) return;
         const cat = product.category || t('No data');
@@ -88,7 +87,7 @@ const Reports: React.FC = () => {
   const salesByProduct = useMemo(() => {
     const map = new Map<string, { name: string; total: number; count: number }>();
     completedOrders.forEach(order => {
-      order.items.forEach((item) => {
+      order.items.forEach((item: OrderItem) => {
         const product = products.find(p => p.id === item.productId);
         if (!product) return;
         if (!map.has(product.id)) {

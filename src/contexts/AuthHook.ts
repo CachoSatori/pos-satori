@@ -12,3 +12,9 @@ export function useAuth(): AuthContextType {
   }
   return context;
 }
+
+/**
+ * Sugerencias de pruebas (Vitest):
+ * - Verifica que useAuth lance error fuera del provider.
+ * - Verifica que useAuth provea user, loading, login, logout y role correctamente.
+ */
