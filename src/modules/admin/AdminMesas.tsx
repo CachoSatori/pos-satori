@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db } from '../../firebase';
-import { useMesas } from '../../contexts/MesasContext';
-import { useAuth } from '../../contexts/useAuth';
+import { useMesas } from '../../contexts/MesasHook';
+import { useAuth } from '../../contexts/AuthHook';
+import { useOrders } from '../../contexts/OrdersHook';
 import ProtectedRoute from '../auth/ProtectedRoute';
 import type { Table } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 type TableStatus = 'available' | 'occupied' | 'reserved';
 
@@ -15,12 +17,16 @@ interface TableForm {
   status: TableStatus;
 }
 
+/**
+ * Componente para administración de mesas.
+ */
 const AdminMesas: React.FC = () => {
   const { tables, loading } = useMesas();
   useAuth(); // Solo para asegurar contexto, puedes quitar si no usas user
   const [form, setForm] = useState<TableForm>({ number: 0, status: 'available' });
   const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleAddOrUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,11 +67,17 @@ const AdminMesas: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="text-text">Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#FFFFFF]">
+        <span className="text-xl">{t('Loading...')}</span>
+      </div>
+    );
+  }
 
   return (
     <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-      <div className="bg-[#1C2526] text-[#FFFFFF] min-h-screen p-8">
+      <div className="min-h-screen p-8 bg-[#1C2526] text-[#FFFFFF]">
         <div className="flex items-center mb-8">
           <button
             onClick={() => navigate('/')}
@@ -73,7 +85,9 @@ const AdminMesas: React.FC = () => {
           >
             ← Volver al Inicio
           </button>
-          <h1 className="text-4xl font-bold ml-6 text-[#00A6A6] drop-shadow">Administrar Mesas</h1>
+          <h1 className="text-4xl font-bold ml-6 text-[#00A6A6] drop-shadow">
+            {t('Table Administration')}
+          </h1>
         </div>
         <form
           onSubmit={handleAddOrUpdate}
@@ -120,15 +134,22 @@ const AdminMesas: React.FC = () => {
           </div>
         </form>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {tables.length === 0 && (
+            <div className="text-center text-gray-400 col-span-full">
+              {t('No data')}
+            </div>
+          )}
           {tables.map((table: Table) => (
             <div
               key={table.id}
               className="bg-[#16213e] p-8 rounded-xl shadow-lg flex flex-col justify-between hover:shadow-2xl transition"
             >
               <div>
-                <h2 className="text-2xl font-bold text-[#00A6A6] mb-2">Mesa #{table.number}</h2>
+                <h2 className="text-2xl font-bold text-[#00A6A6] mb-2">
+                  {t('Table')} #{table.number}
+                </h2>
                 <p className="mb-2 text-lg">
-                  Estado:{' '}
+                  {t('Status')}:{' '}
                   <span className={`font-semibold ${
                     table.status === 'available'
                       ? 'text-[#00A6A6]'
@@ -137,10 +158,10 @@ const AdminMesas: React.FC = () => {
                       : 'text-red-500'
                   }`}>
                     {table.status === 'available'
-                      ? 'Disponible'
+                      ? t('Available')
                       : table.status === 'reserved'
-                      ? 'Reservada'
-                      : 'Ocupada'}
+                      ? t('Reserved')
+                      : t('Occupied')}
                   </span>
                 </p>
               </div>
@@ -157,7 +178,7 @@ const AdminMesas: React.FC = () => {
                   }}
                   className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-[#00A6A6] transition text-lg"
                 >
-                  Editar
+                  {t('Edit')}
                 </button>
                 <button
                   onClick={() => handleDelete(table.id)}
@@ -171,7 +192,7 @@ const AdminMesas: React.FC = () => {
                   }}
                   className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-red-500 transition text-lg"
                 >
-                  Eliminar
+                  {t('Delete')}
                 </button>
               </div>
             </div>
@@ -183,3 +204,10 @@ const AdminMesas: React.FC = () => {
 };
 
 export default AdminMesas;
+
+/**
+ * Sugerencias de pruebas (Vitest):
+ * - Renderiza loading correctamente.
+ * - Renderiza lista de mesas.
+ * - Accesibilidad: aria-busy y roles correctos.
+ */

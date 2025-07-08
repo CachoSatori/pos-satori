@@ -1,14 +1,15 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, collection, deleteDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db, logError } from '../../firebase';
-import { useOrders } from '../../contexts/OrdersContext';
-import { useProductos } from '../../contexts/ProductosContext';
-import { useMesas } from '../../contexts/MesasContext';
-import { useAuth } from '../../contexts/useAuth';
+import { useOrders } from '../../contexts/OrdersHook';
+import { useProductos } from '../../contexts/ProductosHook';
+import { useMesas } from '../../contexts/MesasHook';
+import { useAuth } from '../../contexts/AuthHook';
 import ProtectedRoute from '../auth/ProtectedRoute';
 import type { Table, Order, OrderItem, Product } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface OrderForm {
   tableId: string;
@@ -18,6 +19,9 @@ interface OrderForm {
 
 const PAGE_SIZE = 6;
 
+/**
+ * Componente para administración de órdenes.
+ */
 const AdminOrders: React.FC = () => {
   const { orders, loading } = useOrders();
   const { products } = useProductos();
@@ -35,6 +39,7 @@ const AdminOrders: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<Order['status'] | ''>('');
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Search and filter logic
   const filteredOrders = useMemo(() => {
@@ -142,20 +147,18 @@ const AdminOrders: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="text-text">Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#FFFFFF]">
+        <span className="text-xl">{t('Loading...')}</span>
+      </div>
+    );
+  }
 
   return (
     <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-      <div className="bg-[#1C2526] text-[#FFFFFF] min-h-screen p-8">
-        <div className="flex items-center mb-8">
-          <button
-            onClick={() => navigate('/')}
-            className="bg-[#00A6A6] text-[#FFFFFF] px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-[#009090] focus:ring-2 focus:ring-[#00A6A6] transition"
-          >
-            ← Volver al Inicio
-          </button>
-          <h1 className="text-4xl font-bold ml-6 text-[#00A6A6] drop-shadow">Administrar Órdenes</h1>
-        </div>
+      <div className="min-h-screen p-8 bg-[#1C2526] text-[#FFFFFF]">
+        <h1 className="text-4xl font-bold mb-8 text-center text-[#00A6A6]">{t('Order Administration')}</h1>
         <form
           onSubmit={handleAddOrUpdate}
           className="mb-10 bg-[#16213e] p-8 rounded-xl shadow-lg grid gap-6 max-w-2xl mx-auto"
@@ -457,3 +460,10 @@ const AdminOrders: React.FC = () => {
 };
 
 export default AdminOrders;
+
+/**
+ * Sugerencias de pruebas (Vitest):
+ * - Renderiza loading correctamente.
+ * - Renderiza lista de órdenes.
+ * - Accesibilidad: aria-busy y roles correctos.
+ */

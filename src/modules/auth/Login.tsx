@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthHook';
 import { useTranslation } from 'react-i18next';
+import { useMesas } from '../../contexts/MesasHook';
 
 /**
  * Componente de Login.
