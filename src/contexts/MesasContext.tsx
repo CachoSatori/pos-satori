@@ -24,6 +24,7 @@ export const MesasProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setLoading(false);
       },
       (error) => {
+        // eslint-disable-next-line no-console
         console.error('Error en onSnapshot para tables:', error);
         setLoading(false);
       }

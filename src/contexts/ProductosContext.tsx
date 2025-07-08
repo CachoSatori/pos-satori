@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { onSnapshot, collection } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, logError } from '../firebase';
 import type { ProductosContextType } from './ProductosContextTypes';
 import type { Product } from '../types';
 
@@ -24,8 +24,7 @@ export const ProductosProvider: React.FC<{ children: ReactNode }> = ({ children 
         setLoading(false);
       },
       (error) => {
-        // eslint-disable-next-line no-console
-        console.error('Error en onSnapshot para products:', error);
+        logError({ error, context: 'ProductosContext' });
         setLoading(false);
       }
     );

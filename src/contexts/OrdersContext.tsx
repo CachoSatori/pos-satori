@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { onSnapshot, collection } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, logError } from '../firebase';
 import type { OrdersContextType } from './OrdersContextTypes';
 import type { Order } from '../types';
 
@@ -24,8 +24,7 @@ export const OrdersProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         setLoading(false);
       },
       (error) => {
-        // eslint-disable-next-line no-console
-        console.error('Error en onSnapshot para orders:', error);
+        logError({ error, context: 'OrdersContext' });
         setLoading(false);
       }
     );
