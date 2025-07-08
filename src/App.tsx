@@ -8,12 +8,13 @@ import AdminProductos from './modules/admin/AdminProductos';
 import AdminOrders from './modules/admin/AdminOrders';
 import Dashboard from './modules/dashboard/Dashboard';
 import Reports from './modules/reports/Reports';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthHook';
 import { MesasProvider } from './contexts/MesasContext';
 import { ProductosProvider } from './contexts/ProductosContext';
 import { OrdersProvider } from './contexts/OrdersContext';
-import ErrorBoundary from './components/ErrorBoundary';
 import { DebugContextProvider, DebugUI } from './components/DebugContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 /**
  * Componente Home: redirige a /login si no está autenticado, o a /dashboard si sí.

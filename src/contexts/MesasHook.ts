@@ -2,9 +2,6 @@ import { useContext } from 'react';
 import { MesasContext } from './MesasContext';
 import type { MesasContextType } from './MesasContextTypes';
 
-/**
- * Hook para consumir el contexto de mesas.
- */
 export function useMesas(): MesasContextType {
   const context = useContext(MesasContext);
   if (!context) {

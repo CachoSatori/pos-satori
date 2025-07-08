@@ -90,6 +90,5 @@ export const useAuth = (): AuthContextType => {
 
 /**
  * Sugerencias de pruebas (Vitest):
- * - Verifica que useAuth lance error fuera del provider.
  * - Verifica que AuthProvider provea user, loading, login, logout y role correctamente.
  */
