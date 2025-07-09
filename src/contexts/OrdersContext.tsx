@@ -20,7 +20,14 @@ export const OrdersProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const unsub = onSnapshot(
       collection(db, 'orders'),
       (snapshot) => {
-        setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order)));
+        const fetchedOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+        // Log para depuración (eliminar después de depurar)
+        // eslint-disable-next-line no-console
+        console.log('OrdersContext snapshot:', fetchedOrders);
+        if (fetchedOrders.length === 0) {
+          logError({ error: new Error('OrdersContext vacío tras carga'), context: 'OrdersContext' });
+        }
+        setOrders(fetchedOrders);
         setLoading(false);
       },
       (error) => {

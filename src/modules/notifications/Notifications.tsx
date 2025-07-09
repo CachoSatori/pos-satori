@@ -72,7 +72,7 @@ const Notifications: React.FC = () => {
       },
       ...prev.filter(n => n.id !== latestOrder.id),
     ]);
-  }, [orders.length]);
+  }, [orders]);
 
   return (
     <div className="bg-[#1C2526] text-[#FFFFFF] min-h-screen p-8 flex flex-col items-center">
