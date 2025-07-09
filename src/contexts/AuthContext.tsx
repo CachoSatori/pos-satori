@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, FirebaseError } from 'firebase/auth';
 import { auth, logError } from '../firebase';
 import type { AuthContextType, UserWithRole } from './AuthContextTypes';
 
@@ -32,11 +32,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setUser(null);
             setRole(undefined);
           }
-        } catch (error: any) {
+        } catch (error) {
           logError({
-            error,
+            error: error as FirebaseError,
             context: 'AuthContext',
-            details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}`
+            details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
           });
         } finally {
           setLoading(false);
@@ -44,9 +44,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       },
       (error) => {
         logError({
-          error,
+          error: error as FirebaseError,
           context: 'AuthContext',
-          details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}`
+          details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
         });
         setLoading(false);
       }
@@ -58,11 +58,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (error: any) {
+    } catch (error) {
       logError({
-        error,
+        error: error as FirebaseError,
         context: 'AuthContext',
-        details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}`
+        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
       });
       throw error;
     } finally {
@@ -74,11 +74,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     try {
       await signOut(auth);
-    } catch (error: any) {
+    } catch (error) {
       logError({
-        error,
+        error: error as FirebaseError,
         context: 'AuthContext',
-        details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}`
+        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
       });
       throw error;
     } finally {

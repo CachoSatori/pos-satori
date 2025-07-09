@@ -47,7 +47,7 @@ class ErrorBoundaryBase extends Component<ErrorBoundaryProps, ErrorBoundaryState
       role: 'alert',
     });
     // Log estructurado para depuración
-    // eslint-disable-next-line no-console
+     
     console.error('[ErrorBoundary]', error, errorInfo);
   }
 

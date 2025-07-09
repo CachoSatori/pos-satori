@@ -1,11 +1,11 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getMessaging, isSupported } from 'firebase/messaging';
 
 // Configuración específica del proyecto pos-satori
 const firebaseConfig = {
-  apiKey: "AIzaSyBLchTepoC9GFPJ0w3E9GS9B9OFh5ZcZgs",
+  apiKey: "AIzaSyAUREDOiVcaniG28-Z6aEkj7pppKhUoSlE",
   authDomain: "pos-satori.firebaseapp.com",
   projectId: "pos-satori",
   storageBucket: "pos-satori.appspot.com",
@@ -19,14 +19,14 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 // Inicializar Auth
 const auth = getAuth(app);
 
-// Inicializar Firestore con persistencia condicional
-const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
+// Inicializar Firestore
+const db = getFirestore(app);
 
-const db = isTest
-  ? initializeFirestore(app, {}) // Sin persistencia en pruebas
-  : initializeFirestore(app, {
-      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-    });
+// Habilita persistencia offline (soporte multi-tab)
+enableIndexedDbPersistence(db).catch((err) => {
+  // Puedes loguear el error si lo deseas
+  // console.error('Firestore offline persistence error:', err);
+});
 
 // Inicializar Messaging solo si es soportado
 const messagingPromise = isSupported().then((supported) => {

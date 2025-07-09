@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthHook';
 import { useTranslation } from 'react-i18next';
-import { getAuth } from 'firebase/auth';
+import { getAuth, FirebaseError } from 'firebase/auth';
 import { logError } from '../../firebase';
 
 /**
@@ -27,7 +27,11 @@ const Login: React.FC = () => {
       await login(email, password);
     } catch (error) {
       setError(t('Login failed'));
-      logError({ error, context: 'Login', details: `Código: ${(error as any)?.code}, Mensaje: ${(error as any)?.message}` });
+      logError({
+        error: error as FirebaseError,
+        context: 'Login',
+        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
+      });
     }
   };
 
@@ -41,7 +45,11 @@ const Login: React.FC = () => {
         console.log('No hay usuario autenticado');
       }
     } catch (error) {
-      logError({ error, context: 'Login', details: `Código: ${(error as any)?.code}, Mensaje: ${(error as any)?.message}` });
+      logError({
+        error: error as FirebaseError,
+        context: 'Login',
+        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
+      });
     }
   };
 
