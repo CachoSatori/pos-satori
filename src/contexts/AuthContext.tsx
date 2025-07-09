@@ -33,20 +33,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setRole(undefined);
           }
         } catch (error: any) {
-          logError({ 
-            error, 
-            context: 'AuthContext', 
-            details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}` 
+          logError({
+            error,
+            context: 'AuthContext',
+            details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}`
           });
         } finally {
           setLoading(false);
         }
       },
       (error) => {
-        logError({ 
-          error, 
-          context: 'AuthContext', 
-          details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}` 
+        logError({
+          error,
+          context: 'AuthContext',
+          details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}`
         });
         setLoading(false);
       }
@@ -59,7 +59,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error: any) {
-      logError({ error, context: 'AuthContext', details: `Código: ${error.code}, Mensaje: ${error.message}` });
+      logError({
+        error,
+        context: 'AuthContext',
+        details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}`
+      });
       throw error;
     } finally {
       setLoading(false);
@@ -71,7 +75,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await signOut(auth);
     } catch (error: any) {
-      logError({ error, context: 'AuthContext', details: `Código: ${error.code}, Mensaje: ${error.message}` });
+      logError({
+        error,
+        context: 'AuthContext',
+        details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}`
+      });
       throw error;
     } finally {
       setLoading(false);
