@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthHook';
 import { useTranslation } from 'react-i18next';
-import { useMesas } from '../../contexts/MesasHook';
+import { logError } from '../../firebase';
 
 /**
  * Componente de Login.
@@ -24,8 +24,13 @@ const Login: React.FC = () => {
     setError(null);
     try {
       await login(email, password);
-    } catch {
+    } catch (error: any) {
       setError(t('Login failed'));
+      logError({
+        error,
+        context: 'Login',
+        details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}`
+      });
     }
   };
 

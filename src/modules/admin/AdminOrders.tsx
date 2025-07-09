@@ -149,7 +149,11 @@ const AdminOrders: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#FFFFFF]">
+      <div
+        className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#FFFFFF]"
+        aria-busy="true"
+        role="status"
+      >
         <span className="text-xl">{t('Loading...')}</span>
       </div>
     );

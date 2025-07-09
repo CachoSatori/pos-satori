@@ -1,15 +1,19 @@
-import type { User as FirebaseUser } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 
-export interface UserWithRole {
-  uid: string;
-  email?: string | null;
+/**
+ * Interfaz para usuario con rol.
+ */
+export interface UserWithRole extends User {
   role?: string;
 }
 
+/**
+ * Interfaz para el contexto de autenticación.
+ */
 export interface AuthContextType {
   user: UserWithRole | null;
   loading: boolean;
-  role?: string;
+  role: string | undefined;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
@@ -69,7 +69,11 @@ const AdminMesas: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#FFFFFF]">
+      <div
+        className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#FFFFFF]"
+        aria-busy="true"
+        role="status"
+      >
         <span className="text-xl">{t('Loading...')}</span>
       </div>
     );

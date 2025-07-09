@@ -21,17 +21,17 @@ export const OrdersProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       collection(db, 'orders'),
       (snapshot) => {
         const fetchedOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-        // Log para depuración (eliminar después de depurar)
-        // eslint-disable-next-line no-console
-        console.log('OrdersContext snapshot:', fetchedOrders);
         if (fetchedOrders.length === 0) {
-          logError({ error: new Error('OrdersContext vacío tras carga'), context: 'OrdersContext' });
+          logError({ error: new Error('OrdersContext vacío: no se encontraron documentos en la colección orders'), context: 'OrdersContext' });
+        } else {
+          logError({ error: new Error(`OrdersContext cargó ${fetchedOrders.length} órdenes`), context: 'OrdersContext' });
         }
         setOrders(fetchedOrders);
         setLoading(false);
       },
       (error) => {
-        logError({ error, context: 'OrdersContext' });
+        logError({ error, context: 'OrdersContext', details: `Código: ${error.code}, Mensaje: ${error.message}` });
+        setOrders([]);
         setLoading(false);
       }
     );

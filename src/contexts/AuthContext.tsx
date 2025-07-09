@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, logError } from '../firebase';
 import type { AuthContextType, UserWithRole } from './AuthContextTypes';
 
 /**
@@ -22,22 +22,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       async (firebaseUser) => {
         try {
           if (firebaseUser) {
+            const tokenResult = await firebaseUser.getIdTokenResult(true);
             setUser(firebaseUser as UserWithRole);
-            setRole((firebaseUser as UserWithRole).role);
+            setRole(tokenResult.claims.role as string | undefined);
+            if (!tokenResult.token) {
+              logError({ error: new Error('No se pudo obtener el token de autenticación'), context: 'AuthContext' });
+            }
           } else {
             setUser(null);
             setRole(undefined);
           }
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error('Error en onAuthStateChanged:', error);
+        } catch (error: any) {
+          logError({ 
+            error, 
+            context: 'AuthContext', 
+            details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}` 
+          });
         } finally {
           setLoading(false);
         }
       },
       (error) => {
-        // eslint-disable-next-line no-console
-        console.error('Error en onAuthStateChanged:', error);
+        logError({ 
+          error, 
+          context: 'AuthContext', 
+          details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}` 
+        });
         setLoading(false);
       }
     );
@@ -48,9 +58,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error en login:', error);
+    } catch (error: any) {
+      logError({ error, context: 'AuthContext', details: `Código: ${error.code}, Mensaje: ${error.message}` });
       throw error;
     } finally {
       setLoading(false);
@@ -61,9 +70,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     try {
       await signOut(auth);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error en logout:', error);
+    } catch (error: any) {
+      logError({ error, context: 'AuthContext', details: `Código: ${error.code}, Mensaje: ${error.message}` });
       throw error;
     } finally {
       setLoading(false);

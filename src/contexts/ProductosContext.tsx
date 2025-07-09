@@ -20,11 +20,19 @@ export const ProductosProvider: React.FC<{ children: ReactNode }> = ({ children 
     const unsub = onSnapshot(
       collection(db, 'products'),
       (snapshot) => {
-        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+        const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        if (fetchedProducts.length === 0) {
+          logError({ error: new Error('ProductosContext vacío: no se encontraron documentos en la colección products'), context: 'ProductosContext' });
+        }
+        setProducts(fetchedProducts);
         setLoading(false);
       },
       (error) => {
-        logError({ error, context: 'ProductosContext' });
+        logError({ 
+          error, 
+          context: 'ProductosContext', 
+          details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}` 
+        });
         setLoading(false);
       }
     );

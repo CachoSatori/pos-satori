@@ -1,26 +1,36 @@
-import { auth } from './firebase'; // sin extensión .ts
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from './firebase';
+import * as admin from 'firebase-admin';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-// Script para crear/corregir usuario admin en Firestore
-async function fixUser(): Promise<void> {
+const serviceAccount = require(process.env.FIREBASE_SERVICE_ACCOUNT_PATH || '../serviceAccountKey.json');
+
+if (!process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+  console.warn('Usando ../serviceAccountKey.json por defecto. Puedes definir FIREBASE_SERVICE_ACCOUNT_PATH en tu .env');
+}
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+const args = process.argv.slice(2);
+const [email, role] = args;
+
+async function setUserRole(email: string, role: string) {
   try {
-    await setDoc(doc(db, 'users', 'iOVvtc1BvPUDdGLb0tKzJ6jUkch1'), {
-      role: 'admin',
-      email: 'test@satoripos.com'
-    });
-    console.log('Usuario corregido');
+    const user = await admin.auth().getUserByEmail(email);
+    await admin.auth().setCustomUserClaims(user.uid, { role });
+    console.log(`Rol ${role} establecido para ${email}`);
   } catch (error) {
-    console.error('Error al corregir usuario:', error);
+    console.error('Error al establecer rol:', error);
     process.exit(1);
   }
 }
 
-/**
- * Utilidad para obtener el usuario actual autenticado.
- */
-export function getCurrentUser() {
-  return auth.currentUser;
+if (!email || !role) {
+  console.error('Uso: npx ts-node src/fixUser.ts <email> <role>');
+  process.exit(1);
 }
 
-fixUser();
+setUserRole(email, role);
+
+// Comando sugerido incorporado: npx ts-node src/fixUser.ts test@satoripos.com admin

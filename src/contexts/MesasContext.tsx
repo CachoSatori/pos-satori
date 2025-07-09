@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { onSnapshot, collection } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, logError } from '../firebase';
 import type { MesasContextType } from './MesasContextTypes';
 import type { Table } from '../types';
 
@@ -20,12 +20,19 @@ export const MesasProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const unsub = onSnapshot(
       collection(db, 'tables'),
       (snapshot) => {
-        setTables(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Table)));
+        const fetchedTables = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Table));
+        if (fetchedTables.length === 0) {
+          logError({ error: new Error('MesasContext vacío: no se encontraron documentos en la colección tables'), context: 'MesasContext' });
+        }
+        setTables(fetchedTables);
         setLoading(false);
       },
       (error) => {
-        // eslint-disable-next-line no-console
-        console.error('Error en onSnapshot para tables:', error);
+        logError({ 
+          error, 
+          context: 'MesasContext', 
+          details: `Código: ${(error as any)?.code ?? 'N/A'}, Mensaje: ${error.message ?? (error as any)?.message ?? 'N/A'}` 
+        });
         setLoading(false);
       }
     );
