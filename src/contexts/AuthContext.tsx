@@ -1,8 +1,7 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { auth } from '../firebase';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth, db } from '../firebase'; // Importando db también
 import * as Sentry from '@sentry/react';
-import type { Scope } from '@sentry/react';
 import type { User } from 'firebase/auth';
 
 export type AuthContextType = {
@@ -14,11 +13,6 @@ export type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, FirebaseError } from 'firebase/auth';
-import { auth, logError } from '../firebase';
-import type { AuthContextType, UserWithRole } from './AuthContextTypes';
 
 /**
  * Contexto de autenticación.
@@ -41,14 +35,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const role = idTokenResult.claims.role;
         setUser(user);
         setRole(role as string | undefined);
-        Sentry.withScope((scope: Scope) => {
+        Sentry.withScope((scope) => {
           scope.setUser({ email: user.email ?? undefined, id: user.uid });
           scope.setTag('role', role as string);
         });
       } else {
         setUser(null);
         setRole(undefined);
-        Sentry.withScope((scope: Scope) => {
+        Sentry.withScope((scope) => {
           scope.setUser(null);
           scope.setTag('role', undefined);
         });
