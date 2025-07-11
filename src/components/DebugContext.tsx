@@ -1,10 +1,86 @@
-import React, { ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import { onSnapshot, collection, FirestoreError } from 'firebase/firestore';
+import { db, logError } from '../firebase';
+import { useAuth } from '../contexts/AuthHook';
 import { useOrders } from '../contexts/OrdersHook';
 import { useProductos } from '../contexts/ProductosHook';
 import { useMesas } from '../contexts/MesasHook';
-import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { logError } from '../firebase';
+
+interface DebugContextType {
+  ordersError: string | null;
+  productsError: string | null;
+  tablesError: string | null;
+}
+
+export const DebugContext = createContext<DebugContextType | undefined>(
+  undefined
+);
+
+export const DebugProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const { user } = useAuth();
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [productsError, setProductsError] = useState<string | null>(null);
+  const [tablesError, setTablesError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const ordersUnsub = onSnapshot(
+      collection(db, 'orders'),
+      () => {},
+      (error) => {
+        const details = `Código: ${(error as FirestoreError).code || 'N/A'}, Mensaje: ${(error as FirestoreError).message || 'N/A'}, User: ${user?.email || 'N/A'}`;
+        logError({
+          error,
+          context: 'OrdersContext',
+          details: `User: ${user?.email || 'N/A'}`,
+        });
+        setOrdersError(details);
+      }
+    );
+
+    const productsUnsub = onSnapshot(
+      collection(db, 'products'),
+      () => {},
+      (error) => {
+        const details = `Código: ${(error as FirestoreError).code || 'N/A'}, Mensaje: ${(error as FirestoreError).message || 'N/A'}, User: ${user?.email || 'N/A'}`;
+        logError({
+          error,
+          context: 'ProductosContext',
+          details: `User: ${user?.email || 'N/A'}`,
+        });
+        setProductsError(details);
+      }
+    );
+
+    const tablesUnsub = onSnapshot(
+      collection(db, 'tables'),
+      () => {},
+      (error) => {
+        const details = `Código: ${(error as FirestoreError).code || 'N/A'}, Mensaje: ${(error as FirestoreError).message || 'N/A'}, User: ${user?.email || 'N/A'}`;
+        logError({
+          error,
+          context: 'MesasContext',
+          details: `User: ${user?.email || 'N/A'}`,
+        });
+        setTablesError(details);
+      }
+    );
+
+    return () => {
+      ordersUnsub();
+      productsUnsub();
+      tablesUnsub();
+    };
+  }, [user]);
+
+  return (
+    <DebugContext.Provider value={{ ordersError, productsError, tablesError }}>
+      {children}
+    </DebugContext.Provider>
+  );
+};
 
 /**
  * Props para DebugContextProvider.
@@ -18,10 +94,12 @@ interface DebugContextProviderProps {
  * Monitorea y muestra el estado de OrdersContext, ProductosContext y MesasContext.
  * Registra errores en consola solo en desarrollo y en Firestore. Accesible y mobile-first.
  */
-export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ children }) => {
+export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({
+  children,
+}) => {
   const { orders, loading: loadingOrders } = useOrders();
   const { products, loading: loadingProducts } = useProductos();
-  const { tables, loading: loadingTables } = useMesas();
+  const { mesas, loading: loadingTables } = useMesas();
   const { user } = useAuth();
   const { t } = useTranslation();
 
@@ -34,20 +112,43 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
 
     if (orders.length === 0) {
       const error = new Error('OrdersContext vacío tras carga');
-      logError({ error, context: 'OrdersContext', user: user.email });
-      if (import.meta.env.MODE === 'development') window.console?.warn?.('[DebugContext] OrdersContext vacío');
+      logError({
+        error,
+        context: 'OrdersContext',
+        details: `User: ${user?.email || 'N/A'}`,
+      });
+      if (import.meta.env.MODE === 'development')
+        window.console?.warn?.('[DebugContext] OrdersContext vacío');
     }
     if (products.length === 0) {
       const error = new Error('ProductosContext vacío tras carga');
-      logError({ error, context: 'ProductosContext', user: user.email });
-      if (import.meta.env.MODE === 'development') window.console?.warn?.('[DebugContext] ProductosContext vacío');
+      logError({
+        error,
+        context: 'ProductosContext',
+        details: `User: ${user?.email || 'N/A'}`,
+      });
+      if (import.meta.env.MODE === 'development')
+        window.console?.warn?.('[DebugContext] ProductosContext vacío');
     }
-    if (tables.length === 0) {
+    if (mesas.length === 0) {
       const error = new Error('MesasContext vacío tras carga');
-      logError({ error, context: 'MesasContext', user: user.email });
-      if (import.meta.env.MODE === 'development') window.console?.warn?.('[DebugContext] MesasContext vacío');
+      logError({
+        error,
+        context: 'MesasContext',
+        details: `User: ${user?.email || 'N/A'}`,
+      });
+      if (import.meta.env.MODE === 'development')
+        window.console?.warn?.('[DebugContext] MesasContext vacío');
     }
-  }, [orders, products, tables, loadingOrders, loadingProducts, loadingTables, user]);
+  }, [
+    orders,
+    products,
+    mesas,
+    loadingOrders,
+    loadingProducts,
+    loadingTables,
+    user,
+  ]);
 
   return <>{children}</>;
 };
@@ -60,7 +161,7 @@ export const DebugContextProvider: React.FC<DebugContextProviderProps> = ({ chil
 export const DebugUI: React.FC = () => {
   const { orders, loading: loadingOrders } = useOrders();
   const { products, loading: loadingProducts } = useProductos();
-  const { tables, loading: loadingTables } = useMesas();
+  const { mesas, loading: loadingTables } = useMesas();
   const { user } = useAuth();
   const { t } = useTranslation();
 
@@ -75,7 +176,10 @@ export const DebugUI: React.FC = () => {
 
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center min-h-screen" aria-live="polite">
+      <div
+        className="flex items-center justify-center min-h-screen"
+        aria-live="polite"
+      >
         <span className="text-accent text-xl">{t('Access denied')}</span>
       </div>
     );
@@ -93,27 +197,41 @@ export const DebugUI: React.FC = () => {
       <section className="w-full max-w-2xl mb-8">
         <h2 className="text-xl font-bold mb-2">{t('OrdersContext')}</h2>
         <div className="bg-secondary rounded p-4 mb-4">
-          <span className="font-bold">{t('Loading')}:</span> {loadingOrders ? t('Yes') : t('No')}
-          <pre className="mt-2 text-xs overflow-x-auto" aria-label={t('Orders data')}>
+          <span className="font-bold">{t('Loading')}:</span>{' '}
+          {loadingOrders ? t('Yes') : t('No')}
+          <pre
+            className="mt-2 text-xs overflow-x-auto"
+            aria-label={t('Orders data')}
+          >
             {JSON.stringify(orders, null, 2)}
           </pre>
         </div>
         <h2 className="text-xl font-bold mb-2">{t('ProductosContext')}</h2>
         <div className="bg-secondary rounded p-4 mb-4">
-          <span className="font-bold">{t('Loading')}:</span> {loadingProducts ? t('Yes') : t('No')}
-          <pre className="mt-2 text-xs overflow-x-auto" aria-label={t('Products data')}>
+          <span className="font-bold">{t('Loading')}:</span>{' '}
+          {loadingProducts ? t('Yes') : t('No')}
+          <pre
+            className="mt-2 text-xs overflow-x-auto"
+            aria-label={t('Products data')}
+          >
             {JSON.stringify(products, null, 2)}
           </pre>
         </div>
         <h2 className="text-xl font-bold mb-2">{t('MesasContext')}</h2>
         <div className="bg-secondary rounded p-4">
-          <span className="font-bold">{t('Loading')}:</span> {loadingTables ? t('Yes') : t('No')}
-          <pre className="mt-2 text-xs overflow-x-auto" aria-label={t('Tables data')}>
-            {JSON.stringify(tables, null, 2)}
+          <span className="font-bold">{t('Loading')}:</span>{' '}
+          {loadingTables ? t('Yes') : t('No')}
+          <pre
+            className="mt-2 text-xs overflow-x-auto"
+            aria-label={t('Tables data')}
+          >
+            {JSON.stringify(mesas, null, 2)}
           </pre>
         </div>
       </section>
-      <div className="text-xs text-accent mt-8">{t('Only visible to admin users')}</div>
+      <div className="text-xs text-accent mt-8">
+        {t('Only visible to admin users')}
+      </div>
     </main>
   );
 };

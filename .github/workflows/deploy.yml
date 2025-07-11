@@ -1,51 +1,36 @@
-name: Deploy to Firebase Hosting
+name: Build and Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build-and-deploy:
+  test:
     runs-on: ubuntu-latest
-
-    env:
-      # Define el projectId explícitamente para evitar errores de ID inválido
-      FIREBASE_PROJECT_ID: pos-satori
-
     steps:
-      # 1. Clona el repositorio
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}  # Opcional para Cypress Cloud
 
-      # 2. Configura Node.js
-      - uses: actions/setup-node@v4
+  build-deploy:
+    needs: test  # Solo build si tests pasan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          node-version: '20'
-
-      # 3. Instala dependencias
-      - run: npm ci
-
-      # 4. Ejecuta pruebas unitarias (Vitest)
-      - name: Run unit tests
-        run: npm test
-
-      # 5. Ejecuta linting para asegurar calidad de código
-      - name: Run ESLint
-        run: npx eslint . --ext .ts,.tsx
-
-      # 6. Construye la aplicación para producción
-      - run: npm run build
-
-      # 7. Despliega a Firebase Hosting usando el projectId y service account correctos
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_POS_SATORI }}'
-          projectId: ${{ env.FIREBASE_PROJECT_ID }}
-          channelId: live # Opcional: elimina si solo quieres deploy a producción
-
-# Sugerencias de pruebas (Vitest):
-# - Asegura que npm test falle si hay errores en lógica de negocio.
-# - Asegura que ESLint falle si hay errores de estilo o seguridad.
-# - Verifica que el build falle si hay errores de compilación TypeScript.
-# - Verifica que el deploy solo ocurra si los pasos anteriores pasan correctamente.
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: your-project-id

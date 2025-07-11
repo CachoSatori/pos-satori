@@ -1,22 +1,17 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthHook';
-import type { AuthContextType } from '../../contexts/AuthContextTypes';
 
-/**
- * Props para ProtectedRoute.
- */
 interface ProtectedRouteProps {
   allowedRoles?: string[];
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-/**
- * Componente ProtectedRoute.
- * Redirige a /login si no autenticado o no tiene rol permitido.
- */
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children }) => {
-  const { user, loading, role } = useAuth() as AuthContextType;
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  allowedRoles = [],
+  children,
+}) => {
+  const { user, role, loading } = useAuth();
 
   if (loading) {
     return (
@@ -26,15 +21,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children 
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
-  if (allowedRoles && !allowedRoles.includes(role ?? user.role ?? '')) {
+  // Usar role del contexto, no user.role
+  if (allowedRoles.length > 0 && !allowedRoles.includes(role ?? '')) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>;
+  return children ? <>{children}</> : <Outlet />;
 };
 
 export default ProtectedRoute;

@@ -1,6 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { addDoc, collection, deleteDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  updateDoc,
+  Timestamp,
+} from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db, logError } from '../../firebase';
 import { useOrders } from '../../contexts/OrdersHook';
@@ -25,7 +32,7 @@ const PAGE_SIZE = 6;
 const AdminOrders: React.FC = () => {
   const { orders, loading } = useOrders();
   const { products } = useProductos();
-  const { tables } = useMesas();
+  const { mesas } = useMesas();
   useAuth();
   const [form, setForm] = useState<OrderForm>({
     tableId: '',
@@ -38,6 +45,7 @@ const AdminOrders: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<Order['status'] | ''>('');
   const [page, setPage] = useState(1);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -46,26 +54,36 @@ const AdminOrders: React.FC = () => {
     let filtered = orders;
     if (search.trim()) {
       filtered = filtered.filter((order: Order) => {
-        const table = tables.find((t: Table) => t.id === order.tableId);
-        const tableMatch = table && `Mesa #${table.number}`.toLowerCase().includes(search.toLowerCase());
+        const table = mesas.find((t: Table) => t.id === order.tableId);
+        const tableMatch =
+          table &&
+          `Mesa #${table.number}`.toLowerCase().includes(search.toLowerCase());
         const productMatch = order.items.some((item: OrderItem) =>
           (item.productId
-            ? products.find(p => p.id === item.productId)?.name ?? 'Producto'
+            ? (products.find((p) => p.id === item.productId)?.name ??
+              'Producto')
             : 'Producto'
-          ).toLowerCase().includes(search.toLowerCase())
+          )
+            .toLowerCase()
+            .includes(search.toLowerCase())
         );
         return tableMatch || productMatch;
       });
     }
     if (statusFilter) {
-      filtered = filtered.filter((order: Order) => order.status === statusFilter);
+      filtered = filtered.filter(
+        (order: Order) => order.status === statusFilter
+      );
     }
     return filtered;
-  }, [orders, search, statusFilter, tables, products]);
+  }, [orders, search, statusFilter, mesas, products]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
-  const paginatedOrders = filteredOrders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const paginatedOrders = filteredOrders.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
 
   const handleAddItem = () => {
     if (!selectedProduct || quantity < 1) return;
@@ -112,7 +130,11 @@ const AdminOrders: React.FC = () => {
       setEditingId(null);
     } catch (error: unknown) {
       toast.error('Error al guardar orden');
-      logError(error as Error);
+      logError({
+        error,
+        context: 'AdminOrders',
+        details: (error as Error).message,
+      });
     }
   };
 
@@ -133,17 +155,72 @@ const AdminOrders: React.FC = () => {
       toast.success('Orden eliminada');
     } catch (error: unknown) {
       toast.error('Error al eliminar orden');
-      logError(error as Error);
+      logError({
+        error,
+        context: 'AdminOrders',
+        details: (error as Error).message,
+      });
     }
   };
 
-  const handleChangeStatus = async (order: Order, newStatus: Order['status']) => {
+  const handleChangeStatus = async (
+    order: Order,
+    newStatus: Order['status']
+  ) => {
     try {
       await updateDoc(doc(db, 'orders', order.id), { status: newStatus });
       toast.success(`Estado cambiado a ${newStatus.replace('_', ' ')}`);
     } catch (error) {
       toast.error('Error al cambiar estado');
-      logError(error as Error);
+      logError({
+        error,
+        context: 'AdminOrders',
+        details: (error as Error).message,
+      });
+    }
+  };
+
+  const handleUpdateStatus = async (orderId: string, status: string) => {
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      await updateDoc(orderRef, { status });
+    } catch (error) {
+      const details = `Código: ${(error as Error).message || 'N/A'}`;
+      logError({
+        error,
+        context: 'AdminOrders',
+        details: (error as Error).message,
+      });
+      setError(t('Failed to update order'));
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      await deleteDoc(orderRef);
+    } catch (error) {
+      const details = `Código: ${(error as Error).message || 'N/A'}`;
+      logError({
+        error,
+        context: 'AdminOrders',
+        details: (error as Error).message,
+      });
+      setError(t('Failed to delete order'));
+    }
+  };
+
+  const handleAddOrder = async () => {
+    try {
+      // Ejemplo: agregar lógica para crear una orden
+    } catch (error) {
+      const details = `Código: ${(error as Error).message || 'N/A'}`;
+      logError({
+        error,
+        context: 'AdminOrders',
+        details: (error as Error).message,
+      });
+      setError(t('Failed to add order'));
     }
   };
 
@@ -162,7 +239,16 @@ const AdminOrders: React.FC = () => {
   return (
     <ProtectedRoute allowedRoles={['admin', 'waiter']}>
       <div className="min-h-screen p-8 bg-[#1C2526] text-[#FFFFFF]">
-        <h1 className="text-4xl font-bold mb-8 text-center text-[#00A6A6]">{t('Order Administration')}</h1>
+        <h1 className="text-4xl font-bold mb-8 text-center text-[#00A6A6]">
+          {t('Order Administration')}
+        </h1>
+        {error && <div className="text-red-400 mb-4">{error}</div>}
+        <button
+          onClick={handleAddOrder}
+          className="mb-4 bg-[#00A6A6] text-[#FFFFFF] font-bold rounded-xl p-4"
+        >
+          {t('Add Order')}
+        </button>
         <form
           onSubmit={handleAddOrUpdate}
           className="mb-10 bg-[#16213e] p-8 rounded-xl shadow-lg grid gap-6 max-w-2xl mx-auto"
@@ -170,12 +256,12 @@ const AdminOrders: React.FC = () => {
           <select
             name="tableId"
             value={form.tableId}
-            onChange={e => setForm({ ...form, tableId: e.target.value })}
+            onChange={(e) => setForm({ ...form, tableId: e.target.value })}
             className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
             required
           >
             <option value="">Selecciona una mesa</option>
-            {tables.map((table: Table) => (
+            {mesas.map((table: Table) => (
               <option key={table.id} value={table.id}>
                 Mesa #{table.number}
               </option>
@@ -184,7 +270,7 @@ const AdminOrders: React.FC = () => {
           <div className="flex gap-4 items-end">
             <select
               value={selectedProduct}
-              onChange={e => setSelectedProduct(e.target.value)}
+              onChange={(e) => setSelectedProduct(e.target.value)}
               className="flex-1 p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
             >
               <option value="">Selecciona un producto</option>
@@ -198,7 +284,7 @@ const AdminOrders: React.FC = () => {
               type="number"
               min={1}
               value={quantity}
-              onChange={e => setQuantity(Number(e.target.value))}
+              onChange={(e) => setQuantity(Number(e.target.value))}
               className="w-24 p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
               placeholder="Cantidad"
             />
@@ -215,14 +301,20 @@ const AdminOrders: React.FC = () => {
             <h2 className="text-xl font-bold mb-2">Productos en la orden</h2>
             <ul className="mb-4">
               {form.items.map((item, idx) => {
-                const product = products.find(p => p.id === item.productId);
+                const product = products.find(
+                  (p: Product) => p.id === item.productId
+                );
                 return (
                   <li key={idx} className="flex items-center gap-4 mb-2">
                     <span className="flex-1">
-                      {product ? product.name : 'Producto eliminado'} (x{item.quantity})
+                      {product ? product.name : 'Producto eliminado'} (x
+                      {item.quantity})
                     </span>
                     <span className="font-semibold">
-                      ${product ? (product.price * item.quantity).toFixed(2) : '0.00'}
+                      $
+                      {product
+                        ? (product.price * item.quantity).toFixed(2)
+                        : '0.00'}
                     </span>
                     <button
                       type="button"
@@ -237,16 +329,22 @@ const AdminOrders: React.FC = () => {
             </ul>
             <div className="font-bold text-lg">
               Total: $
-              {form.items.reduce((sum, item) => {
-                const product = products.find(p => p.id === item.productId);
-                return sum + (product ? product.price * item.quantity : 0);
-              }, 0).toFixed(2)}
+              {form.items
+                .reduce((sum, item) => {
+                  const product = products.find(
+                    (p: Product) => p.id === item.productId
+                  );
+                  return sum + (product ? product.price * item.quantity : 0);
+                }, 0)
+                .toFixed(2)}
             </div>
           </div>
           <select
             name="status"
             value={form.status}
-            onChange={e => setForm({ ...form, status: e.target.value as Order['status'] })}
+            onChange={(e) =>
+              setForm({ ...form, status: e.target.value as Order['status'] })
+            }
             className="p-4 rounded-xl border border-[#00A6A6] focus:outline-none focus:ring-2 focus:ring-[#00A6A6] bg-[#1C2526] text-[#FFFFFF] text-lg"
           >
             <option value="pending">Pendiente</option>
@@ -282,7 +380,7 @@ const AdminOrders: React.FC = () => {
             type="text"
             placeholder="Buscar por mesa o producto..."
             value={search}
-            onChange={e => {
+            onChange={(e) => {
               setSearch(e.target.value);
               setPage(1);
             }}
@@ -290,7 +388,7 @@ const AdminOrders: React.FC = () => {
           />
           <select
             value={statusFilter}
-            onChange={e => {
+            onChange={(e) => {
               setStatusFilter(e.target.value as Order['status'] | '');
               setPage(1);
             }}
@@ -306,14 +404,16 @@ const AdminOrders: React.FC = () => {
 
         {/* Orders grid with pagination */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {paginatedOrders.map((order: Order) => (
+          {paginatedOrders.map((order: Order, idx: number) => (
             <div
               key={order.id}
               className="bg-[#16213e] p-8 rounded-xl shadow-lg flex flex-col justify-between hover:shadow-2xl transition"
             >
               <div>
                 <h2 className="text-2xl font-bold text-[#00A6A6] mb-2">
-                  Mesa #{tables.find((t: Table) => t.id === order.tableId)?.number || 'N/A'}
+                  Mesa #
+                  {mesas.find((t: Table) => t.id === order.tableId)?.number ||
+                    'N/A'}
                 </h2>
                 <p className="mb-2 text-lg">
                   Estado:{' '}
@@ -322,32 +422,38 @@ const AdminOrders: React.FC = () => {
                       order.status === 'completed'
                         ? 'text-[#00A6A6]'
                         : order.status === 'cancelled'
-                        ? 'text-red-600'
-                        : order.status === 'in_progress'
-                        ? 'text-yellow-400'
-                        : 'text-yellow-400'
+                          ? 'text-red-600'
+                          : order.status === 'in_progress'
+                            ? 'text-yellow-400'
+                            : 'text-yellow-400'
                     }`}
                   >
                     {order.status === 'pending'
                       ? 'Pendiente'
                       : order.status === 'in_progress'
-                      ? 'En Progreso'
-                      : order.status === 'completed'
-                      ? 'Completada'
-                      : 'Cancelada'}
+                        ? 'En Progreso'
+                        : order.status === 'completed'
+                          ? 'Completada'
+                          : 'Cancelada'}
                   </span>
                 </p>
                 <ul className="mb-2">
                   {Array.isArray(order.items) && order.items.length > 0 ? (
                     order.items.map((item: OrderItem, idx: number) => {
-                      const product = products.find(p => p.id === item.productId);
+                      const product = products.find(
+                        (p: Product) => p.id === item.productId
+                      );
                       return (
                         <li key={idx} className="flex justify-between">
                           <span>
-                            {product ? product.name : 'Producto eliminado'} (x{item.quantity})
+                            {product ? product.name : 'Producto eliminado'} (x
+                            {item.quantity})
                           </span>
                           <span>
-                            ${product ? (product.price * item.quantity).toFixed(2) : '0.00'}
+                            $
+                            {product
+                              ? (product.price * item.quantity).toFixed(2)
+                              : '0.00'}
                           </span>
                         </li>
                       );
@@ -359,13 +465,16 @@ const AdminOrders: React.FC = () => {
                 <div className="font-bold text-lg">
                   Total: $
                   {Array.isArray(order.items) && order.items.length > 0
-                    ? order.items.reduce(
-                        (sum: number, item: OrderItem) => {
-                          const product = products.find(p => p.id === item.productId);
-                          return sum + (product ? product.price * item.quantity : 0);
-                        },
-                        0
-                      ).toFixed(2)
+                    ? order.items
+                        .reduce((sum: number, item: OrderItem) => {
+                          const product = products.find(
+                            (p: Product) => p.id === item.productId
+                          );
+                          return (
+                            sum + (product ? product.price * item.quantity : 0)
+                          );
+                        }, 0)
+                        .toFixed(2)
                     : '0.00'}
                 </div>
               </div>
@@ -378,7 +487,7 @@ const AdminOrders: React.FC = () => {
                     borderRadius: '8px',
                     backgroundColor: '#00A6A6',
                     color: '#fff',
-                    border: '1px solid #00A6A6'
+                    border: '1px solid #00A6A6',
                   }}
                   className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-[#00A6A6] transition text-lg"
                 >
@@ -392,7 +501,7 @@ const AdminOrders: React.FC = () => {
                     borderRadius: '8px',
                     backgroundColor: '#00A6A6',
                     color: '#fff',
-                    border: '1px solid #00A6A6'
+                    border: '1px solid #00A6A6',
                   }}
                   className="flex-1 font-bold shadow-lg hover:bg-opacity-90 focus:ring-2 focus:ring-red-600 transition text-lg"
                 >

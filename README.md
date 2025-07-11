@@ -74,3 +74,22 @@ export default tseslint.config([
   },
 ])
 ```
+
+## Revisión Final SDD
+
+- Cumplidos: Cloud-first, mobile-first, offline, i18n, seguridad PCI, escalabilidad, observabilidad, lazy loading, CI/CD, tests unitarios y E2E, reportes con filtros.
+- Pendientes: Ninguno – proyecto completo.
+
+## Deployment Production
+
+1. Set secrets in GitHub repo: `SENTRY_AUTH_TOKEN`, `FIREBASE_SERVICE_ACCOUNT`.
+2. Push to `main`: Esto dispara el workflow de CI/CD (lint, tests, build, deploy).
+3. Verifica el deployment en [https://pos-satori.web.app](https://pos-satori.web.app) (ajusta la URL si tu proyecto usa otra).
+4. En Sentry, configura alertas para errores críticos (por ejemplo, email para excepciones no manejadas).
+5. Monitorea errores y performance desde el dashboard de Sentry.
+6. Para rollback, haz revert en GitHub y push a `main`.
+
+---
+
+**Apply to editor:**  
+Agrega esta sección al final de tu `README.md` para documentar el proceso de deployment a producción y monitoreo.

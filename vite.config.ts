@@ -6,5 +6,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     chunkSizeWarningLimit: 1000,
-  },
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          dashboard: [
+            './src/modules/dashboard/Dashboard',
+            './src/modules/orders/OrdersList'
+          ]
+        }
+      }
+    }
+  }
 });

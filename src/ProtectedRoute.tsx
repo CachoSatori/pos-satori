@@ -15,7 +15,10 @@ interface ProtectedRouteProps {
  * Componente ProtectedRoute.
  * Redirige a /login si no autenticado o no tiene rol permitido.
  */
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  allowedRoles,
+  children,
+}) => {
   const { user, loading, role } = useAuth() as AuthContextType;
 
   if (loading) {
@@ -38,3 +41,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children 
 };
 
 export default ProtectedRoute;
+
+// Extiende la interfaz User para incluir 'role'
+// Crea o edita src/types.d.ts:
+declare module 'firebase/auth' {
+  interface User {
+    role?: string;
+  }
+}

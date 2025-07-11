@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
  */
 const AdminMesas: React.FC = () => {
   useAuth();
-  const { tables, loading } = useMesas();
+  const { mesas, loading } = useMesas();
   const { t } = useTranslation();
 
   if (loading) {
@@ -28,12 +28,14 @@ const AdminMesas: React.FC = () => {
   return (
     <ProtectedRoute allowedRoles={['admin', 'waiter']}>
       <div className="min-h-screen p-8 bg-[#1C2526] text-[#FFFFFF]">
-        <h1 className="text-4xl font-bold mb-8 text-center text-[#00A6A6]">{t('Table Administration')}</h1>
+        <h1 className="text-4xl font-bold mb-8 text-center text-[#00A6A6]">
+          {t('Table Administration')}
+        </h1>
         <ul>
-          {tables.length === 0 && (
+          {mesas.length === 0 && (
             <li className="text-gray-400">{t('No data')}</li>
           )}
-          {tables.map((table: Table) => (
+          {mesas.map((table: Table) => (
             <li key={table.id} className="mb-2">
               {t('Table')} {table.number}: {t(table.status)}
             </li>

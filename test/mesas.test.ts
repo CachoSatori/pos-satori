@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import React from 'react';
 import { MesasProvider } from '../src/contexts/MesasContext';
 import { useMesas } from '../src/contexts/MesasHook';
@@ -7,6 +7,20 @@ import { describe, it, expect } from 'vitest';
 import { collection, addDoc, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../src/firebase';
 import type { Table } from '../src/types';
+
+// El test ya es correcto si la interfaz y el provider están bien definidos.
+// Si quieres tests unitarios puros, puedes mockear onSnapshot así:
+import { vi } from 'vitest';
+vi.mock('../src/firebase', () => ({
+  db: {
+    collection: vi.fn(() => ({
+      onSnapshot: vi.fn((_, cb) => {
+        cb({ docs: [] });
+        return () => {};
+      }),
+    })),
+  },
+}));
 
 // Utilidad para limpiar después de la prueba
 async function cleanupMesa(id: string) {
@@ -43,18 +57,16 @@ describe('Firestore Mesas', () => {
 describe('useMesas', () => {
   it('lanza error si se usa fuera de MesasProvider', () => {
     expect(() => renderHook(() => useMesas())).toThrow(
-      'useMesas debe usarse dentro de MesasProvider'
+      /useMesas debe usarse dentro de MesasProvider/
     );
   });
 
   it('provee mesas y loading correctamente dentro del provider', () => {
-    // Usar React.createElement para evitar problemas de JSX/TS1161
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(MesasProvider, null, children);
     const { result } = renderHook(() => useMesas(), { wrapper });
-    expect(result.current).toHaveProperty('tables');
-    expect(result.current).toHaveProperty('loading');
-    expect(result.current).toHaveProperty('setTables');
+    expect(result.current.mesas).toEqual([]);
+    expect(result.current.loading).toBe(true);
   });
 });
 

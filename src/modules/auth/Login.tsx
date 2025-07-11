@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthHook';
 import { useTranslation } from 'react-i18next';
-import { getAuth, FirebaseError } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { logError } from '../../firebase';
 
 /**
@@ -11,9 +13,16 @@ import { logError } from '../../firebase';
 const Login: React.FC = () => {
   const { login, loading, user } = useAuth();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === 'email') setEmail(e.target.value);
@@ -25,12 +34,16 @@ const Login: React.FC = () => {
     setError(null);
     try {
       await login(email, password);
+      navigate('/dashboard');
     } catch (error) {
-      setError(t('Login failed'));
-      logError({
-        error: error as FirebaseError,
-        context: 'Login',
-        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
+      const errorMessage = (error as FirebaseError).code === 'auth/wrong-password' 
+        ? t('Invalid credentials') 
+        : t('Login failed');
+      setError(errorMessage);
+      logError({ 
+        error: error as FirebaseError, 
+        context: 'Login', 
+        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}` 
       });
     }
   };
@@ -45,10 +58,10 @@ const Login: React.FC = () => {
         console.log('No hay usuario autenticado');
       }
     } catch (error) {
-      logError({
-        error: error as FirebaseError,
-        context: 'Login',
-        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
+      logError({ 
+        error: error as FirebaseError, 
+        context: 'Login', 
+        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}` 
       });
     }
   };
@@ -120,7 +133,7 @@ export default Login;
 /**
  * Sugerencias de pruebas (Vitest):
  * - Renderiza formulario de login correctamente.
- * - Renderiza mensaje si ya está logueado.
- * - Renueva token correctamente.
+ * - Redirecciona a /dashboard tras login exitoso.
+ * - Muestra mensaje de error para credenciales inválidas.
  * - Accesibilidad: aria-labels presentes.
  */

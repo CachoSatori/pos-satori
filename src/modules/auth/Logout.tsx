@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthHook';
 
 const Logout: React.FC = () => {
   const { logout, loading } = useAuth();

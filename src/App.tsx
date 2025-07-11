@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import React, { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Login from './modules/auth/Login';
-import ProtectedRoute from './modules/auth/ProtectedRoute';
+import Login from './modules/auth/Login'; // No lazy si es ligero
+import ProtectedRoute from './modules/auth/ProtectedRoute'; // Auth wrapper según SDD
 import AdminMesas from './modules/admin/AdminMesas';
 import AdminProductos from './modules/admin/AdminProductos';
 import AdminOrders from './modules/admin/AdminOrders';
-import Dashboard from './modules/dashboard/Dashboard';
 import Reports from './modules/reports/Reports';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthHook';
@@ -44,6 +43,8 @@ function App() {
   // Evitar warning de no-unused-vars para useTranslation
   void useTranslation;
 
+  const LazyDashboard = lazy(() => import('./modules/dashboard/Dashboard'));
+
   return (
     <ErrorBoundary>
       <AuthProvider>
@@ -51,62 +52,66 @@ function App() {
           <ProductosProvider>
             <OrdersProvider>
               <DebugContextProvider>
-                <div className="min-h-screen bg-[#1C2526] text-[#FFFFFF]">
-                  <Routes>
-                    <Route path="/" element={<HomeRedirect />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route
-                      path="/admin"
-                      element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                          <AdminProductos />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/mesas"
-                      element={
-                        <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                          <AdminMesas />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/orders"
-                      element={
-                        <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                          <AdminOrders />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                          <Dashboard />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/reports"
-                      element={
-                        <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                          <Reports />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/debug"
-                      element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                          <DebugUI />
-                        </ProtectedRoute>
-                      }
-                    />
-                    {/* Fallback */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </div>
+                <Router>
+                  <div className="min-h-screen bg-[#1C2526] text-[#FFFFFF]">
+                    <Routes>
+                      <Route path="/" element={<HomeRedirect />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route
+                        path="/admin"
+                        element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminProductos />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/mesas"
+                        element={
+                          <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                            <AdminMesas />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/orders"
+                        element={
+                          <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                            <AdminOrders />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/dashboard"
+                        element={
+                          <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                            <Suspense fallback={<div>Loading Dashboard...</div>}>
+                              <LazyDashboard />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/reports"
+                        element={
+                          <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                            <Reports />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/debug"
+                        element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <DebugUI />
+                          </ProtectedRoute>
+                        }
+                      />
+                      {/* Redirige cualquier ruta desconocida a /login */}
+                      <Route path="*" element={<Navigate to="/login" replace />} />
+                    </Routes>
+                  </div>
+                </Router>
               </DebugContextProvider>
             </OrdersProvider>
           </ProductosProvider>

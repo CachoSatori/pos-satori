@@ -4,6 +4,7 @@ import { useProductos } from '../../contexts/ProductosHook';
 import { useMesas } from '../../contexts/MesasHook';
 import { useOrders } from '../../contexts/OrdersHook';
 import { useAuth } from '../../contexts/AuthHook';
+import { useTranslation } from 'react-i18next';
 import ProtectedRoute from '../auth/ProtectedRoute';
 import { Pie, Bar } from 'react-chartjs-2';
 import {
@@ -16,11 +17,18 @@ import {
   BarElement,
   Title,
 } from 'chart.js';
-import type { Order, OrderItem } from '../../types';
+import type { Order, OrderItem, Product } from '../../types';
 import type { Timestamp } from 'firebase/firestore';
-import { useTranslation } from 'react-i18next';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title
+);
 
 /**
  * Componente de dashboard.
@@ -29,24 +37,23 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 const Dashboard: React.FC = () => {
   useAuth();
   const { products, loading: loadingProducts } = useProductos();
-  const { tables, loading: loadingTables } = useMesas();
+  const { mesas, loading: loadingTables } = useMesas();
   const { orders, loading: loadingOrders } = useOrders();
   const { t } = useTranslation();
 
   // Filtrar órdenes completadas
-  const completedOrders = orders.filter((order: Order) => order.status === 'completed');
+  const completedOrders = orders.filter(
+    (order: Order) => order.status === 'completed'
+  );
 
   // Calcular ingresos totales
   const totalRevenue = completedOrders.reduce(
     (sum: number, order: Order) =>
       sum +
-      order.items.reduce(
-        (orderSum: number, item: OrderItem) => {
-          const product = products.find(p => p.id === item.productId);
-          return orderSum + ((product?.price ?? 0) * item.quantity);
-        },
-        0
-      ),
+      order.items.reduce((orderSum: number, item: OrderItem) => {
+        const product = products.find((p: Product) => p.id === item.productId);
+        return orderSum + (product?.price ?? 0) * item.quantity;
+      }, 0),
     0
   );
 
@@ -85,7 +92,7 @@ const Dashboard: React.FC = () => {
   });
 
   // Calcular ingresos por día
-  const revenueByDay = days.map(day => {
+  const revenueByDay = days.map((day) => {
     const dayStr = day.toISOString().slice(0, 10);
     const dayOrders = completedOrders.filter((order: Order) => {
       if (!order.createdAt) return false;
@@ -100,19 +107,18 @@ const Dashboard: React.FC = () => {
     return dayOrders.reduce(
       (sum: number, order: Order) =>
         sum +
-        order.items.reduce(
-          (orderSum: number, item: OrderItem) => {
-            const product = products.find(p => p.id === item.productId);
-            return orderSum + ((product?.price ?? 0) * item.quantity);
-          },
-          0
-        ),
+        order.items.reduce((orderSum: number, item: OrderItem) => {
+          const product = products.find(
+            (p: Product) => p.id === item.productId
+          );
+          return orderSum + (product?.price ?? 0) * item.quantity;
+        }, 0),
       0
     );
   });
 
   const revenueBarData = {
-    labels: days.map(d =>
+    labels: days.map((d) =>
       d.toLocaleDateString('es-MX', { month: 'short', day: 'numeric' })
     ),
     datasets: [
@@ -137,11 +143,17 @@ const Dashboard: React.FC = () => {
     <ProtectedRoute allowedRoles={['admin', 'waiter']}>
       <div className="bg-[#1C2526] text-[#FFFFFF] min-h-screen flex items-center justify-center p-8">
         <div className="bg-[#16213e] rounded-xl shadow-lg p-8 flex flex-col gap-8 items-center w-full max-w-5xl">
-          <h1 className="text-4xl font-bold mb-4 text-center text-[#00A6A6]">{t('Dashboard')}</h1>
+          <h1 className="text-4xl font-bold mb-4 text-center text-[#00A6A6]">
+            {t('Dashboard')}
+          </h1>
           <div className="flex flex-col md:flex-row gap-8 w-full justify-center">
             <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
-              <span className="text-[#00A6A6] text-5xl font-bold mb-2">{products.length}</span>
-              <span className="text-lg font-semibold mb-4">{t('Products')}</span>
+              <span className="text-[#00A6A6] text-5xl font-bold mb-2">
+                {products.length}
+              </span>
+              <span className="text-lg font-semibold mb-4">
+                {t('Products')}
+              </span>
               <Link
                 to="/admin"
                 style={{
@@ -156,14 +168,16 @@ const Dashboard: React.FC = () => {
                   textAlign: 'center',
                   fontWeight: 'bold',
                   boxShadow: '0 2px 8px #1C2526',
-                  marginTop: '16px'
+                  marginTop: '16px',
                 }}
               >
                 {t('View Products')}
               </Link>
             </div>
             <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
-              <span className="text-[#00A6A6] text-5xl font-bold mb-2">{tables.length}</span>
+              <span className="text-[#00A6A6] text-5xl font-bold mb-2">
+                {mesas.length}
+              </span>
               <span className="text-lg font-semibold mb-4">{t('Tables')}</span>
               <Link
                 to="/mesas"
@@ -179,17 +193,22 @@ const Dashboard: React.FC = () => {
                   textAlign: 'center',
                   fontWeight: 'bold',
                   boxShadow: '0 2px 8px #1C2526',
-                  marginTop: '16px'
+                  marginTop: '16px',
                 }}
               >
                 {t('View Tables')}
               </Link>
             </div>
             <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
-              <span className="text-[#00A6A6] text-5xl font-bold mb-2">{orders.length}</span>
+              <span className="text-[#00A6A6] text-5xl font-bold mb-2">
+                {orders.length}
+              </span>
               <span className="text-lg font-semibold mb-1">{t('Orders')}</span>
               <span className="text-[#FFFFFF] text-lg mb-4">
-                {t('Completed')}: <span className="font-bold text-[#00A6A6]">{statusCounts.completed}</span>
+                {t('Completed')}:{' '}
+                <span className="font-bold text-[#00A6A6]">
+                  {statusCounts.completed}
+                </span>
               </span>
               <Link
                 to="/orders"
@@ -205,7 +224,7 @@ const Dashboard: React.FC = () => {
                   textAlign: 'center',
                   fontWeight: 'bold',
                   boxShadow: '0 2px 8px #1C2526',
-                  marginTop: '16px'
+                  marginTop: '16px',
                 }}
               >
                 {t('View Orders')}
@@ -214,9 +233,14 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="w-full flex flex-col md:flex-row gap-8 justify-center mt-8">
             <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
-              <span className="text-lg font-semibold mb-2">{t('Total Revenue')}</span>
+              <span className="text-lg font-semibold mb-2">
+                {t('Total Revenue')}
+              </span>
               <span className="text-3xl font-bold text-[#00A6A6] mb-2">
-                ${totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                $
+                {totalRevenue.toLocaleString('es-MX', {
+                  minimumFractionDigits: 2,
+                })}
               </span>
               <div className="w-full mt-6">
                 <Bar
@@ -226,28 +250,39 @@ const Dashboard: React.FC = () => {
                     responsive: true,
                     scales: {
                       y: { beginAtZero: true, ticks: { color: '#fff' } },
-                      x: { ticks: { color: '#fff' } }
-                    }
+                      x: { ticks: { color: '#fff' } },
+                    },
                   }}
                 />
               </div>
             </div>
             <div className="flex-1 bg-[#1C2526] rounded-xl shadow p-8 flex flex-col items-center">
-              <span className="text-lg font-semibold mb-4">{t('Orders by Status')}</span>
+              <span className="text-lg font-semibold mb-4">
+                {t('Orders by Status')}
+              </span>
               <div className="w-full max-w-xs">
                 <Pie
                   data={statusPieData}
                   options={{
                     plugins: {
                       legend: {
-                        labels: { color: '#fff', font: { size: 16 } }
-                      }
-                    }
+                        labels: { color: '#fff', font: { size: 16 } },
+                      },
+                    },
                   }}
                 />
               </div>
             </div>
           </div>
+          {/* Botón para forzar error */}
+          <button
+            onClick={() => {
+              throw new Error('This is your first error!');
+            }}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md shadow-md hover:bg-red-700 transition-all duration-200"
+          >
+            Romper el mundo
+          </button>
         </div>
       </div>
     </ProtectedRoute>

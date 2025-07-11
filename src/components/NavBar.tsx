@@ -20,7 +20,7 @@ const NavBar: React.FC = () => {
             setRole('Usuario');
           }
         })
-        .catch(error => {
+        .catch((error) => {
           toast.error('Error al cargar rol de usuario');
           logError(error);
         });
@@ -32,24 +32,42 @@ const NavBar: React.FC = () => {
   return (
     <nav className="bg-primary text-text p-6 rounded-xl shadow-lg flex justify-between items-center">
       <div className="flex gap-8">
-        <Link to="/" className="text-2xl font-bold hover:text-accent hover:scale-105 transition">
+        <Link
+          to="/"
+          className="text-2xl font-bold hover:text-accent hover:scale-105 transition"
+        >
           SatoriPOS
         </Link>
         {user && (
           <>
-            <Link to="/dashboard" className="text-2xl hover:text-accent hover:scale-105 transition">
+            <Link
+              to="/dashboard"
+              className="text-2xl hover:text-accent hover:scale-105 transition"
+            >
               Dashboard
             </Link>
-            <Link to="/admin" className="text-2xl hover:text-accent hover:scale-105 transition">
+            <Link
+              to="/admin"
+              className="text-2xl hover:text-accent hover:scale-105 transition"
+            >
               Productos
             </Link>
-            <Link to="/mesas" className="text-2xl hover:text-accent hover:scale-105 transition">
+            <Link
+              to="/mesas"
+              className="text-2xl hover:text-accent hover:scale-105 transition"
+            >
               Mesas
             </Link>
-            <Link to="/orders" className="text-2xl hover:text-accent hover:scale-105 transition">
+            <Link
+              to="/orders"
+              className="text-2xl hover:text-accent hover:scale-105 transition"
+            >
               Órdenes
             </Link>
-            <Link to="/notifications" className="text-2xl hover:text-accent hover:scale-105 transition">
+            <Link
+              to="/notifications"
+              className="text-2xl hover:text-accent hover:scale-105 transition"
+            >
               Notificaciones
             </Link>
           </>

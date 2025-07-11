@@ -1,19 +1,12 @@
+// Usa el tipo User de Firebase Auth en vez de importarlo de ../types
 import type { User } from 'firebase/auth';
 
-/**
- * Interfaz para usuario con rol.
- */
-export interface UserWithRole extends User {
+export type AuthContextType = {
+  user: User | null;
   role?: string;
-}
-
-/**
- * Interfaz para el contexto de autenticación.
- */
-export interface AuthContextType {
-  user: UserWithRole | null;
+  setUser: (user: User | null) => void;
+  setRole: (role?: string) => void;
   loading: boolean;
-  role: string | undefined;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-}
+};

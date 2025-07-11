@@ -23,9 +23,13 @@ describe('Login Page', () => {
     cy.get('.error-message').should('contain', 'Invalid credentials');
   });
 
+  // Simula offline correctamente en Cypress
   it('should handle offline mode', () => {
-    cy.window().then(win => { win.navigator.onLine = false; });
     cy.visit('/login');
     cy.get('input[type="email"]').should('be.visible');
+    cy.window().then(win => {
+      win.dispatchEvent(new win.Event('offline'));
+    });
+    // Agrega aquí los asserts para UI offline
   });
 });

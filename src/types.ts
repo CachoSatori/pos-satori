@@ -28,4 +28,7 @@ export interface Order {
   items: OrderItem[];
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   createdAt: Timestamp;
+  total: number;
+  date: Date;
+  ubicacionId: string;
 }
