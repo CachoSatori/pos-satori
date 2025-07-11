@@ -11,8 +11,4 @@ export const useMesas = (): MesasContextType => {
     throw new Error('useMesas debe usarse dentro de MesasProvider');
   }
   return context;
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> e7873d4861da77c7c58f9e0232b79d7ff80eeabd

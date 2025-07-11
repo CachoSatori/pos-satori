@@ -1,45 +1,28 @@
 import React, { Component, ErrorInfo } from 'react';
 import { logError } from '../firebase';
 
-interface ErrorBoundaryProps {
+type ErrorBoundaryProps = {
   children: React.ReactNode;
-}
+};
 
-interface ErrorBoundaryState {
+type ErrorBoundaryState = {
   hasError: boolean;
   error: Error | null;
-}
+};
 
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = {
-    hasError: false,
-    error: null,
-  };
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
 
-<<<<<<< HEAD
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     const details = `Component stack: ${errorInfo.componentStack}`;
     logError({ error, context: 'ErrorBoundary', details });
-=======
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    this.setState({ errorInfo });
-    logError({ error, errorInfo });
-    // Notificación accesible y traducida
-    toast.error(this.props.t('An unexpected error occurred'), {
-      position: 'top-center',
-      autoClose: 8000,
-      theme: 'colored',
-      toastId: 'global-error',
-      role: 'alert',
-    });
-    // Log estructurado para depuración
-     
-    console.error('[ErrorBoundary]', error, errorInfo);
->>>>>>> e7873d4861da77c7c58f9e0232b79d7ff80eeabd
   }
 
   render() {

@@ -2,12 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthHook';
 import { useTranslation } from 'react-i18next';
-<<<<<<< HEAD
-import { getAuth } from 'firebase/auth';
-import { FirebaseError } from 'firebase/app';
-=======
 import { getAuth, FirebaseError } from 'firebase/auth';
->>>>>>> e7873d4861da77c7c58f9e0232b79d7ff80eeabd
 import { logError } from '../../firebase';
 
 /**
@@ -40,22 +35,11 @@ const Login: React.FC = () => {
       await login(email, password);
       navigate('/dashboard');
     } catch (error) {
-<<<<<<< HEAD
-      const errorMessage = (error as FirebaseError).code === 'auth/wrong-password' 
-        ? t('Invalid credentials') 
-        : t('Login failed');
-      setError(errorMessage);
-      logError({ 
-        error: error as FirebaseError, 
-        context: 'Login', 
-        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}` 
-=======
       setError(t('Login failed'));
       logError({
         error: error as FirebaseError,
         context: 'Login',
         details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
->>>>>>> e7873d4861da77c7c58f9e0232b79d7ff80eeabd
       });
     }
   };
@@ -70,17 +54,10 @@ const Login: React.FC = () => {
         console.log('No hay usuario autenticado');
       }
     } catch (error) {
-<<<<<<< HEAD
-      logError({ 
-        error: error as FirebaseError, 
-        context: 'Login', 
-        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}` 
-=======
       logError({
         error: error as FirebaseError,
         context: 'Login',
         details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
->>>>>>> e7873d4861da77c7c58f9e0232b79d7ff80eeabd
       });
     }
   };
