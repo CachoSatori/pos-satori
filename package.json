@@ -32,8 +32,13 @@
     "chart.js": "^4.5.0",
     "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",
+<<<<<<< HEAD
     "firebase": "^11.10.0",
     "firebase-admin": "^12.7.0",
+=======
+    "firebase": "^11.9.1",
+    "firebase-admin": "^13.4.0",
+>>>>>>> e7873d4861da77c7c58f9e0232b79d7ff80eeabd
     "i18next": "^25.3.1",
     "i18next-browser-languagedetector": "^8.2.0",
     "react": "^19.1.0",
@@ -61,7 +66,10 @@
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.21",
     "cypress": "^14.5.1",
+<<<<<<< HEAD
     "cypress-firebase": "^4.2.1",
+=======
+>>>>>>> e7873d4861da77c7c58f9e0232b79d7ff80eeabd
     "dotenv": "^17.1.0",
     "eslint": "^9.29.0",
     "eslint-plugin-react-hooks": "^5.2.0",

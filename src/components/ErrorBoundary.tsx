@@ -20,9 +20,26 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     return { hasError: true, error };
   }
 
+<<<<<<< HEAD
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const details = `Component stack: ${errorInfo.componentStack}`;
     logError({ error, context: 'ErrorBoundary', details });
+=======
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    this.setState({ errorInfo });
+    logError({ error, errorInfo });
+    // Notificación accesible y traducida
+    toast.error(this.props.t('An unexpected error occurred'), {
+      position: 'top-center',
+      autoClose: 8000,
+      theme: 'colored',
+      toastId: 'global-error',
+      role: 'alert',
+    });
+    // Log estructurado para depuración
+     
+    console.error('[ErrorBoundary]', error, errorInfo);
+>>>>>>> e7873d4861da77c7c58f9e0232b79d7ff80eeabd
   }
 
   render() {
