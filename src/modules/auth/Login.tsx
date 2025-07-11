@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthHook';
 import { useTranslation } from 'react-i18next';
-import { getAuth, FirebaseError } from 'firebase/auth';
-import { logError } from '../../firebase';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Componente de Login.
@@ -36,47 +34,8 @@ const Login: React.FC = () => {
       navigate('/dashboard');
     } catch (error) {
       setError(t('Login failed'));
-      logError({
-        error: error as FirebaseError,
-        context: 'Login',
-        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
-      });
     }
   };
-
-  const renovarToken = async () => {
-    try {
-      const auth = getAuth();
-      if (auth.currentUser) {
-        await auth.currentUser.getIdToken(true);
-        console.log('Token renovado');
-      } else {
-        console.log('No hay usuario autenticado');
-      }
-    } catch (error) {
-      logError({
-        error: error as FirebaseError,
-        context: 'Login',
-        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
-      });
-    }
-  };
-
-  if (user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#FFFFFF]">
-        <div className="p-8 rounded-xl bg-[#00A6A6] text-[#1C2526] font-bold text-xl">
-          {t('Already logged in')}
-          <button
-            onClick={renovarToken}
-            className="mt-4 bg-[#FFFFFF] text-[#1C2526] font-bold rounded-xl p-2"
-          >
-            {t('Renovar token')}
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div

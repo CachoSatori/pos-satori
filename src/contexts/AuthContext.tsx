@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth, db } from '../firebase'; // Importando db también
+import { auth } from '../firebase';
 import * as Sentry from '@sentry/react';
 import type { User } from 'firebase/auth';
 
@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(false);
       if (user) {
         const idTokenResult = await user.getIdTokenResult();
@@ -57,11 +57,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       Sentry.captureException(error);
-      logError({
-        error: error as FirebaseError,
-        context: 'AuthContext',
-        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
-      });
       throw error;
     } finally {
       setLoading(false);
@@ -74,11 +69,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await signOut(auth);
     } catch (error) {
       Sentry.captureException(error);
-      logError({
-        error: error as FirebaseError,
-        context: 'AuthContext',
-        details: `Código: ${(error as FirebaseError).code || 'N/A'}, Mensaje: ${(error as FirebaseError).message || 'N/A'}`
-      });
       throw error;
     } finally {
       setLoading(false);

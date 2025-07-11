@@ -9,7 +9,8 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { toast } from 'react-toastify';
-import { db, logError } from '../../firebase';
+import { db } from '../../firebase';
+import { logError } from '../../firebase';
 import { useOrders } from '../../contexts/OrdersHook';
 import { useProductos } from '../../contexts/ProductosHook';
 import { useMesas } from '../../contexts/MesasHook';

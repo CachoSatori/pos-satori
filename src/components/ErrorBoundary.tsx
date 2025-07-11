@@ -1,5 +1,4 @@
 import React, { Component, ErrorInfo } from 'react';
-import { logError } from '../firebase';
 
 type ErrorBoundaryProps = {
   children: React.ReactNode;
@@ -22,7 +21,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     const details = `Component stack: ${errorInfo.componentStack}`;
-    logError({ error, context: 'ErrorBoundary', details });
+    // logError({ error, context: 'ErrorBoundary', details });
   }
 
   render() {

@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { onSnapshot, collection, FirestoreError } from 'firebase/firestore';
-import { db, logError } from '../firebase';
+import { db } from '../firebase';
+import { logError } from '../firebase';
 import { useAuth } from '../contexts/AuthHook';
 import { useOrders } from '../contexts/OrdersHook';
 import { useProductos } from '../contexts/ProductosHook';

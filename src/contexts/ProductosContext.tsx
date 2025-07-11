@@ -6,7 +6,8 @@ import React, {
   ReactNode,
 } from 'react';
 import { onSnapshot, collection } from 'firebase/firestore';
-import { db, logError } from '../firebase';
+import { db } from '../firebase';
+import { logError } from '../firebase';
 import { ProductosContextType } from './ProductosContextTypes';
 import type { Product } from '../types';
 

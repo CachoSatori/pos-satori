@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { requestFCMToken, onForegroundMessage } from '../../firebase';
 
 /**
  * Componente para mostrar notificaciones push.
@@ -10,18 +9,7 @@ const Notifications: React.FC = () => {
   const [notifications, setNotifications] = useState<string[]>([]);
 
   useEffect(() => {
-    requestFCMToken().then((token) => {
-      if (token) {
-        console.log('FCM Token:', token);
-      }
-    });
-
-    const unsubscribe = onForegroundMessage((payload) => {
-      setNotifications((prev) => [
-        ...prev,
-        payload.notification?.body || 'Nueva notificación',
-      ]);
-    });
+    const unsubscribe = () => {};
 
     return () => unsubscribe();
   }, []);
