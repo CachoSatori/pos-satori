@@ -1,0 +1,1 @@
+import './commands';  // Importa comandos custom si existen (crea commands.ts si no)
