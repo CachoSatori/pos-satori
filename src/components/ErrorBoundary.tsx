@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo } from 'react';
+import React from 'react';
 
 type ErrorBoundaryProps = {
   children: React.ReactNode;
@@ -9,7 +9,7 @@ type ErrorBoundaryState = {
   error: Error | null;
 };
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -20,22 +20,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    const details = `Component stack: ${errorInfo.componentStack}`;
-    // logError({ error, context: 'ErrorBoundary', details });
+    // Puedes enviar el error a un servicio externo aquí
+    console.error('ErrorBoundary caught an error', error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-[#1C2526] text-[#FFFFFF]">
-          <div className="p-8 rounded-xl bg-[#00A6A6] text-[#1C2526] font-bold text-xl">
-            <h1>Something went wrong.</h1>
-            <p>{this.state.error?.message}</p>
-          </div>
-        </div>
-      );
+      return <div>Ha ocurrido un error inesperado.</div>;
     }
-
     return this.props.children;
   }
 }
